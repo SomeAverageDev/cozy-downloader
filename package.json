@@ -28,8 +28,8 @@
   "cozy-permissions": {
     "Download": {
       "description": "Download description and required fields"
-    },
-    },
+    }
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/SomeAverageDev/cozy-downloader/issues"
