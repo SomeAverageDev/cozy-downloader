@@ -18,13 +18,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/SomeAverageDev/cozy-downloader"
+    "url": "https://github.com/SomeAverageDev/cozy-downloader.git"
   },
   "keywords": [
     "cozy",
     "downloader"
   ],
   "author": "SomeAverageDev",
+  "cozy-permissions": {
+    "Download": {
+      "description": "Download description and required fields"
+    },
+    },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/SomeAverageDev/cozy-downloader/issues"
