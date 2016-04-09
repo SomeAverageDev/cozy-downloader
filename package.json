@@ -1,6 +1,6 @@
 {
   "name": "cozy-downloader",
-  "version": "1.0.1",
+  "version": "0.0.1",
   "description": "Download files from a given URL",
   "main": "server.js",
   "dependencies": {
