@@ -56,7 +56,7 @@ router.post('/create', function(req, res, next) {
 			
 			downloadPage(req.body.url, './data/'+filename);
 
-			res.status(201).send(download);
+			res.sendStatus(200);
         }
     });
 
@@ -64,11 +64,28 @@ router.post('/create', function(req, res, next) {
 });
 
 
-// List of all download
-router.get('/downloads/', function(req, res, next) {
-    res.sendStatus(204);
+// List of all downloads
+router.get('/downloads', function(req, res, next) {
+    /*
+        `Debt.request` asks the data system to request a CouchDB view, given its
+        name.
+    */
+    Download.request('all', function(err, downloads) {
+        if(err) {
+            /*
+                If an unexpected error occurs, forward it to Express error
+                middleware which will send the error properly formatted.
+            */
+            next(err);
+        } else {
+            /*
+                If everything went well, send the list of documents with the
+                correct HTTP status code and content type.
+            */
+            res.status(200).json(downloads);
+        }
+    });
 });
-
 
 // Export the router instance to make it available from other files.
 module.exports = router;

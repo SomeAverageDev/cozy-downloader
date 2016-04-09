@@ -8,7 +8,12 @@ var Download = cozydb.getModel('Download', {
     'url': {
         default: '',
         type: String,
-    }
+    },
+    'status': {
+        default: '',
+        type: String,
+    },
+	
 });
 
 
