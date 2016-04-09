@@ -1,7 +1,7 @@
 {
-  "name": "cozy-tutorial",
+  "name": "cozy-downloader",
   "version": "1.0.0",
-  "description": "Tutorial to learn building a Node.js Cozy application",
+  "description": "Download files from a given URL",
   "main": "server.js",
   "dependencies": {
     "body-parser": "1.14.2",
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/cozy/cozy-tutorial.git"
+    "url": "https://github.com/SomeAverageDev/cozy-downloader"
   },
   "keywords": [
     "cozy",
-    "tutorial"
+    "downloader"
   ],
-  "author": "Cozy Cloud",
+  "author": "SomeAverageDev",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/cozy/cozy-tutorial/issues"
+    "url": "https://github.com/SomeAverageDev/cozy-downloader/issues"
   },
-  "homepage": "https://github.com/cozy/cozy-tutorial"
+  "homepage": "https://github.com/SomeAverageDev/cozy-downloader"
 }

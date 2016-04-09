@@ -18,8 +18,8 @@ app.use(express.static('client'));
 var indexController = require('./server/controllers/index');
 app.use(indexController);
 
-var debtController = require('./server/controllers/debt');
-app.use(debtController);
+var downloadController = require('./server/controllers/download');
+app.use(downloadController);
 
 
 /*
@@ -29,5 +29,5 @@ var server = app.listen(9250, function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('Cozy tutorial app listening at http://%s:%s', host, port);
+  console.log('Cozy downloader app listening at http://%s:%s', host, port);
 });

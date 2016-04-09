@@ -1,37 +1,27 @@
 <!doctype html>
 <html>
     <head>
-        <meta charset="utf-8"><title>Cozy - Tutorial</title>
+        <meta charset="utf-8"><title>Cozy - Downloader</title>
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body role="application">
         <ul role="navigation">
-            <li aria-selected="true"><a href="#crud-create">Create a new debt</a></li>
-            <li aria-selected="false"><a href="#crud-fetch">Fetch an existing debt</a></li>
-            <li aria-selected="false"><a href="#crud-update">Update an existing debt</a></li>
-            <li aria-selected="false"><a href="#crud-delete">Delete an existing debt</a></li>
-            <li aria-selected="false"><a href="#crud-list">List debts</a></li>
+            <li aria-selected="true"><a href="#crud-create">Submit new download</a></li>
+            <li aria-selected="false"><a href="#crud-list">List downloads</a></li>
         </ul>
         <div role="main">
             <div role="panel" id="crud-create">
-                <h2>Create a new debt</h2>
+                <h2>Submit a new download</h2>
                 <div role="form">
-                    <h3>Fill the form to create a new debt:</h3>
-                    <label for="create-description">Description:
-                    <input type="text" id="create-description" /></label>
-
-                    <label for="create-amount">Amount:
-                    <input type="text" id="create-amount" /></label>
-                    <label for="create-duedate">Due date:
-                    <input type="text" id="create-duedate" /></label>
-                    <label for="create-creditor">Creditor:
-                    <input type="text" id="create-creditor" /></label>
+                    <h3>Download from the URL :</h3>
+                    <label for="create-url">URL
+                    <input type="text" id="create-url" /></label>
                 </div>
                 <div class="payload">
                     <h3>This will be found in `req.body`:</h3>
                     <pre>{}</pre>
 
-                    <button>Submit request POST /debts</button>
+                    <button>Submit request POST /create</button>
                 </div>
                 <div class="result">
                     <h3>Request's response:</h3>
@@ -39,65 +29,11 @@
                     <pre class="body"></pre>
                 </div>
             </div>
-            <div role="panel" id="crud-fetch">
-                <h2>Fetch an existing debt</h2>
-                <div>
-                    <h3>Fill the form with the debt's ID you want to fetch:</h3>
-                    <label for="fetch-id">ID:
-                    <input type="text" id="fetch-id" /></label>
-                    <button>Submit request GET /debts/:id</button>
-                </div>
-                <div class="result">
-                    <h3>Request's response.</h3>
-                    <p class="status">Status code: <span></span></p>
-                    <pre class="body"></pre>
-                </div>
-            </div>
-            <div role="panel" id="crud-update">
-                <h2>Update an existing debt</h2>
-                <div role="form">
-                    <h3>Fill the form to update an existing debt:</h3>
-                    <label for="update-id">ID:
-                    <input type="text" id="update-id" /></label>
-                    <label for="update-description">Description:
-                    <input type="text" id="update-description" /></label>
-                    <label for="update-amount">Amount:
-                    <input type="text" id="update-amount" /></label>
-                    <label for="update-duedate">Due date:
-                    <input type="text" id="update-duedate" /></label>
-                    <label for="update-creditor">Creditor:
-                    <input type="text" id="update-creditor" /></label>
-                </div>
-                <div class="payload">
-                    <h3>This will be found in `req.body`:</h3>
-                    <pre>{}</pre>
 
-                    <button>Submit request PUT /debts/:id</button>
-                </div>
-                <div class="result">
-                    <h3>Request's response:</h3>
-                    <p class="status">Status code: <span></span></p>
-                    <pre class="body"></pre>
-                </div>
-            </div>
-            <div role="panel" id="crud-delete">
-                <h2>Delete an existing debt</h2>
-                <div>
-                    <h3>Fill the form with the debt's ID you want to delete:</h3>
-                    <label for="fetch-id">ID:
-                    <input type="text" id="delete-id" /></label>
-                    <button>Submit request DELETE /debts/:id</button>
-                </div>
-                <div class="result">
-                    <h3>Request's response:</h3>
-                    <p class="status">Status code: <span></span></p>
-                    <pre class="body"></pre>
-                </div>
-            </div>
             <div role="panel" id="crud-list">
-                <h2>List all existing debts</h2>
+                <h2>List all downloads</h2>
                 <div>
-                    <button>Submit request GET /debts/</button>
+                    <button>Submit request GET /list/</button>
                 </div>
                 <div class="result">
                     <h3>Request's response:</h3>
