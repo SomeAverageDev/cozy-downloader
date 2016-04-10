@@ -63,7 +63,7 @@ function createDownloadHandler() {
 
         $.ajax({
             'method': 'POST',
-            'url': '/apps/downloader/downloads',
+            'url': '/downloads',
             'data': payload,
             'headers': {
                 'content-type': 'application/json'
@@ -104,7 +104,7 @@ function listDownloadHandler() {
 
         $.ajax({
             'method': 'GET',
-            'url': '/apps/downloader/downloads/',
+            'url': '/downloads/',
             'complete': function(xhr, textStatus) {
                 $resultStatus.html(xhr.status);
 
