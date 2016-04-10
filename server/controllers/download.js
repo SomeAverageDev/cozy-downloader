@@ -11,7 +11,9 @@ router.post('/create', function(req, res, next) {
 	filename = filename.substring(filename.lastIndexOf('/')+1);
 	var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
 
-//	var persistentDirectory = './data'; 
+	if ( typeof persistentDirectory === 'undefined') {
+		persistentDirectory = './client/data';
+	}
 
 /*
     Download.create(req.body, function(err, download) {
@@ -61,7 +63,7 @@ router.post('/create', function(req, res, next) {
 			};
 			
 			console.log("persistentDirectory:" + persistentDirectory);
-			//downloadPage(req.body.url, persistentDirectory+'/'+filename);
+			downloadPage(req.body.url, persistentDirectory+'/'+filename);
 
 			res.sendStatus(200);
 //       }

@@ -42,6 +42,7 @@ function createDownloadHandler() {
     var $resultStatus = $result.find(' p.status span');
     var $resultBody = $result.find('pre');
     var $url = $('#create-url');
+    var $notify = $('#create-notify');
     var $button = $('#crud-create button');
 
     function onFieldChange() {
@@ -49,6 +50,9 @@ function createDownloadHandler() {
 
         if ($url.val() && $url.val().length > 0) {
             payload.url = $url.val();
+        }
+        if ($notify[0].checked) {
+            payload.notify = true;
         }
 
         $payload.html(JSON.stringify(payload, null, 2));
@@ -85,6 +89,7 @@ function createDownloadHandler() {
     }
 
     $url.keyup(onFieldChange);
+    $notify.change(onFieldChange);
     $button.click(onSubmit);
 }
 

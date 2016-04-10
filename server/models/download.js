@@ -9,6 +9,10 @@ var Download = cozydb.getModel('Download', {
         default: '',
         type: String,
     },
+	'notify': {
+        default: false,
+        type: Boolean,
+    },
     'status': {
         default: '',
         type: String,

@@ -7,6 +7,7 @@
   "homepage": "https://github.com/SomeAverageDev/cozy-downloader",
   "main": "server.js",
   "dependencies": {
+    "americano": "0.4.2", 
     "body-parser": "1.14.2",
     "cozydb": "0.1.7",
     "cozy-notifications-helper": "1.0.2",
