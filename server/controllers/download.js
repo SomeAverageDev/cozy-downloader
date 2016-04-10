@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 var Download = require('../models/download');
 
-var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY; 
 
 // Create a new download
 router.post('/create', function(req, res, next) {
@@ -10,12 +9,17 @@ router.post('/create', function(req, res, next) {
 	var urlparsing = require('url');
 	var filename = urlparsing.parse(req.body.url).pathname;
 	filename = filename.substring(filename.lastIndexOf('/')+1);
+	var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
 
+//	var persistentDirectory = './data'; 
+
+/*
     Download.create(req.body, function(err, download) {
         if(err) {
             // ERROR
             next(err);
         } else {
+*/
 			// OK downloading
 
 			// url is the location of file to download
@@ -57,11 +61,11 @@ router.post('/create', function(req, res, next) {
 			};
 			
 			console.log("persistentDirectory:" + persistentDirectory);
-			downloadPage(req.body.url, persistentDirectory+'/'+filename);
+			//downloadPage(req.body.url, persistentDirectory+'/'+filename);
 
 			res.sendStatus(200);
-        }
-    });
+//       }
+//    });
 
 
 });
