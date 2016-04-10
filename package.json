@@ -2,6 +2,9 @@
   "name": "cozy-downloader",
   "version": "0.0.2",
   "description": "Download files from a given URL",
+  "displayName": "Downloader",
+  "author": "SomeAverageDev",
+  "homepage": "https://github.com/SomeAverageDev/cozy-downloader",
   "main": "server.js",
   "dependencies": {
     "americano": "0.4.4",
@@ -27,15 +30,28 @@
     "cozy",
     "downloader"
   ],
-  "author": "SomeAverageDev",
   "cozy-permissions": {
     "Download": {
-      "description": "Download description and required fields"
-    }
+      "description": "Download and store files in your cozy"
+    },
+    "File": {
+      "description": "Store files in your cozy"
+    },
+    "Folder": {
+      "description": "Store folders in your cozy"
+    }, 
+    "User": {
+      "description": "Need information for the from part of email sent."
+    },
+    "send mail from user": {
+      "description": "Send links by mail"
+    },
+    "send mail to user": {
+      "description": "Send links by mail"
+    } 
   },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/SomeAverageDev/cozy-downloader/issues"
-  },
-  "homepage": "https://github.com/SomeAverageDev/cozy-downloader"
+  }
 }
