@@ -6,8 +6,12 @@
   "author": "SomeAverageDev",
   "homepage": "https://github.com/SomeAverageDev/cozy-downloader",
   "main": "server.js",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SomeAverageDev/cozy-downloader/issues"
+  },
+  "icon-path": "icon.png",
   "dependencies": {
-    "americano": "0.4.2", 
     "body-parser": "1.14.2",
     "cozydb": "0.1.7",
     "cozy-notifications-helper": "1.0.2",
@@ -52,9 +56,4 @@
       "description": "Used to recover your language setting and your cozy's domain"
     }
   },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/SomeAverageDev/cozy-downloader/issues"
-  },
-  "icon-path": "icon.png" 
 }
