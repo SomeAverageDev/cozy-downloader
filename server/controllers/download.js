@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 var Download = require('../models/download');
 
+var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY; 
+
 // Create a new download
 router.post('/create', function(req, res, next) {
 
@@ -25,36 +27,37 @@ router.post('/create', function(req, res, next) {
 				var fs = require('fs');
 
 				http.get(url, function(response) {
-				if (response.statusCode !== 200) {
-					if (response) { 
-						console.log(response.statusCode + ' ERROR getting ' + url);
+					if (response.statusCode !== 200) {
+						if (response) { 
+							console.log(response.statusCode + ' ERROR getting ' + url);
+						}
+						//process.exit(1);
 					}
-					process.exit(1);
-				}
-				console.log('start download from URL ['+url+'], saving to file ['+fileName+']');
-				var fd = fs.openSync(fileName, 'w');
-				response.on("data", function(chunk) {			
-				  fs.write(fd, chunk,  0, chunk.length, null, function(err, written, buffer) {
-					if(err) {
-					   console.log(err);
-					   process.exit(1);
-					}
-				  }); 
-				 });
-					
-				response.on("end", function() {
-					fs.closeSync(fd);
-					console.log('end download file ['+fileName+']');
+					console.log('start download from URL ['+url+'], saving to file ['+fileName+']');
+					var fd = fs.openSync(fileName, 'w');
+					response.on("data", function(chunk) {			
+						fs.write(fd, chunk,  0, chunk.length, null, function(err, written, buffer) {
+							if(err) {
+								console.log(err);
+								//process.exit(1);
+							}
+						}); 
+					 });
+						
+					response.on("end", function() {
+						fs.closeSync(fd);
+						console.log('end download file ['+fileName+']');
 
-				  //process.exit(0);
-				});
+					  //process.exit(0);
+					});
 				}).on('error', function(e) {
-				 console.log("Got error: " + e.message);
-				 process.exit(1);
+					console.log("Got error: " + e.message);
+					//process.exit(1);
 				});
 			};
 			
-			downloadPage(req.body.url, './client/data/'+filename);
+			console.log("persistentDirectory:" + persistentDirectory);
+			downloadPage(req.body.url, persistentDirectory+'/'+filename);
 
 			res.sendStatus(200);
         }
