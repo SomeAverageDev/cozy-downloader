@@ -6,18 +6,25 @@ var Download = cozydb.getModel('Download', {
 		URL to download
     */
     'url': {
-        default: '',
         type: String,
+        default: ''
     },
 	'notify': {
-        default: false,
         type: Boolean,
+        default: false
     },
     'status': {
-        default: '',
         type: String,
+        default: ''
     },
-	
+	'created': {
+      type: Date,
+      default: Date
+    },
+    'updated': {
+      type: Date,
+      default: Date
+    } 
 });
 
 
