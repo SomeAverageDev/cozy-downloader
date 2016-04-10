@@ -4,7 +4,7 @@ var Download = require('../models/download');
 
 
 // Create a new download
-router.post('/downloads', function(req, res, next) {
+router.post('/apps/downloader/downloads', function(req, res, next) {
 
 	var urlparsing = require('url');
 	var filename = urlparsing.parse(req.body.url).pathname;
@@ -69,7 +69,7 @@ router.post('/downloads', function(req, res, next) {
 });
 
 // List of all downloads
-router.get('/downloads/', function(req, res, next) {
+router.get('/apps/downloader/downloads/', function(req, res, next) {
 
     Download.request('all', function(err, downloads) {
         if(err) {
@@ -83,7 +83,7 @@ router.get('/downloads/', function(req, res, next) {
 });
 
 // Fetch an existing download by its ID
-router.get('/downloads/:id', function(req, res, next) {
+router.get('/apps/downloader/downloads/:id', function(req, res, next) {
 	Download.find(req.params.id, function(err, download) {
         if(err) {
             // ERROR
@@ -97,7 +97,7 @@ router.get('/downloads/:id', function(req, res, next) {
 
 
 // Remove an existing download and delete file
-router.delete('/downloads/:id', function(req, res, next) {
+router.delete('/apps/downloader/downloads/:id', function(req, res, next) {
 
     Download.destroy(req.params.id, function(err) {
         if(err) {
@@ -112,7 +112,7 @@ router.delete('/downloads/:id', function(req, res, next) {
 });
 
 // Update an existing download
-router.put('/downloads/:id', function(req, res, next) {
+router.put('/apps/downloader/downloads/:id', function(req, res, next) {
     /*
         First, get the document we want to update.
     */
