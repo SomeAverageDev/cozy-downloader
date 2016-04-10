@@ -66,8 +66,6 @@ router.post('/downloads', function(req, res, next) {
 			res.sendStatus(200);
        }
     });
-
-
 });
 
 // List of all downloads
