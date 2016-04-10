@@ -34,16 +34,16 @@
     "downloader"
   ],
   "cozy-permissions": {
-    "Download": {
+    "download": {
       "description": "Download and store files in your cozy"
     },
-    "File": {
+    "file": {
       "description": "Store files in your cozy"
     },
-    "Folder": {
+    "folder": {
       "description": "Store folders in your cozy"
     }, 
-    "User": {
+    "user": {
       "description": "Need information for the from part of email sent."
     },
     "send mail from user": {
@@ -52,7 +52,7 @@
     "send mail to user": {
       "description": "Send links by mail"
     },
-    "CozyInstance": {
+    "cozyinstance": {
       "description": "Used to recover your language setting and your cozy's domain"
     }
   }

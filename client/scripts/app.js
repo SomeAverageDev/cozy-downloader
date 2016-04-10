@@ -35,8 +35,6 @@ function routerHandler() {
 
 function createDownloadHandler() {
 
-	console.log('createDownloadHandler');
-
     var $payload = $('#crud-create .payload pre');
     var $result = $('#crud-create .result');
     var $resultStatus = $result.find(' p.status span');
@@ -65,7 +63,7 @@ function createDownloadHandler() {
 
         $.ajax({
             'method': 'POST',
-            'url': '/create',
+            'url': '/downloads',
             'data': payload,
             'headers': {
                 'content-type': 'application/json'
@@ -106,7 +104,7 @@ function listDownloadHandler() {
 
         $.ajax({
             'method': 'GET',
-            'url': '/list/',
+            'url': '/downloads/',
             'complete': function(xhr, textStatus) {
                 $resultStatus.html(xhr.status);
 

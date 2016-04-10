@@ -4,7 +4,7 @@ var Download = require('../models/download');
 
 
 // Create a new download
-router.post('/create', function(req, res, next) {
+router.post('/downloads', function(req, res, next) {
 
 	var urlparsing = require('url');
 	var filename = urlparsing.parse(req.body.url).pathname;
@@ -15,13 +15,11 @@ router.post('/create', function(req, res, next) {
 		persistentDirectory = './client/data';
 	}
 
-/*
     Download.create(req.body, function(err, download) {
         if(err) {
             // ERROR
             next(err);
         } else {
-*/
 			// OK downloading
 
 			// url is the location of file to download
@@ -66,16 +64,29 @@ router.post('/create', function(req, res, next) {
 			downloadFile(req.body.url, persistentDirectory+'/'+filename);
 
 			res.sendStatus(200);
-//       }
-//    });
+       }
+    });
 
 
 });
 
+// List of all downloads
+router.get('/downloads/', function(req, res, next) {
 
-// Fetch an existing download
+    Download.request('all', function(err, downloads) {
+        if(err) {
+            // ERROR
+            next(err);
+        } else {
+			// OK
+            res.status(200).json(downloads);
+        }
+    });
+});
+
+// Fetch an existing download by its ID
 router.get('/downloads/:id', function(req, res, next) {
-    Download.find(req.params.id, function(err, download) {
+	Download.find(req.params.id, function(err, download) {
         if(err) {
             // ERROR
             next(err);
@@ -86,20 +97,47 @@ router.get('/downloads/:id', function(req, res, next) {
     });
 });
 
-// List of all downloads
-router.get('/downloads', function(req, res, next) {
-    /*
-        Download.request` asks the data system to request a CouchDB view, given its
-        name.
-    */
-    Download.request('all', function(err, downloads) {
+
+// Remove an existing download and delete file
+router.delete('/downloads/:id', function(req, res, next) {
+
+    Download.destroy(req.params.id, function(err) {
         if(err) {
             // ERROR
             next(err);
         } else {
 			// OK
-            res.status(200).json(downloads);
+			var fs = require('fs');
+            res.sendStatus(204);
         }
+    });
+});
+
+// Update an existing download
+router.put('/downloads/:id', function(req, res, next) {
+    /*
+        First, get the document we want to update.
+    */
+    Download.find(req.params.id, function(err, download) {
+        if(err) {
+            // ERROR
+            next(err);
+        } else if(!download) {
+            // DOC NOT FOUND
+            res.sendStatus(404);
+        } else {
+            // UPDATE THE OBJECT
+            download.updateAttributes(req.body, function(err, download) {
+				if(err) {
+					// ERROR
+                    next(err);
+                } else {
+					// OK
+                    res.status(200).send(download);
+                }
+            });
+        }
+
     });
 });
 

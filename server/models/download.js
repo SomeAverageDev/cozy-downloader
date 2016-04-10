@@ -1,11 +1,18 @@
 // Definition of the document type and basic operations
 var cozydb = require('cozydb');
 
+
 var Download = cozydb.getModel('Download', {
-    /*
-		URL to download
-    */
+    // Download model
     'url': {
+        type: String,
+        default: ''
+    },
+    'filename': {
+        type: String,
+        default: ''
+    },
+    'fileId': {
         type: String,
         default: ''
     },
