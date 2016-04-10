@@ -29,7 +29,7 @@ router.post('/create', function(req, res, next) {
 					if (response) { 
 						console.log(response.statusCode + ' ERROR getting ' + url);
 					}
-					//process.exit(1);
+					process.exit(1);
 				}
 				console.log('start download from URL ['+url+'], saving to file ['+fileName+']');
 				var fd = fs.openSync(fileName, 'w');
@@ -37,7 +37,7 @@ router.post('/create', function(req, res, next) {
 				  fs.write(fd, chunk,  0, chunk.length, null, function(err, written, buffer) {
 					if(err) {
 					   console.log(err);
-					   //process.exit(1);
+					   process.exit(1);
 					}
 				  }); 
 				 });
@@ -50,11 +50,11 @@ router.post('/create', function(req, res, next) {
 				});
 				}).on('error', function(e) {
 				 console.log("Got error: " + e.message);
-				 //process.exit(1);
+				 process.exit(1);
 				});
 			};
 			
-			downloadPage(req.body.url, './data/'+filename);
+			downloadPage(req.body.url, './client/data/'+filename);
 
 			res.sendStatus(200);
         }
@@ -64,24 +64,31 @@ router.post('/create', function(req, res, next) {
 });
 
 
+// Fetch an existing download
+router.get('/downloads/:id', function(req, res, next) {
+    Download.find(req.params.id, function(err, download) {
+        if(err) {
+            // ERROR
+            next(err);
+        } else {
+			// OK
+            res.status(200).send(download);
+        }
+    });
+});
+
 // List of all downloads
 router.get('/downloads', function(req, res, next) {
     /*
-        `Debt.request` asks the data system to request a CouchDB view, given its
+        Download.request` asks the data system to request a CouchDB view, given its
         name.
     */
     Download.request('all', function(err, downloads) {
         if(err) {
-            /*
-                If an unexpected error occurs, forward it to Express error
-                middleware which will send the error properly formatted.
-            */
+            // ERROR
             next(err);
         } else {
-            /*
-                If everything went well, send the list of documents with the
-                correct HTTP status code and content type.
-            */
+			// OK
             res.status(200).json(downloads);
         }
     });
