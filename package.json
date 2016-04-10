@@ -47,7 +47,10 @@
     },
     "send mail to user": {
       "description": "Send links by mail"
-    } 
+    },
+    "CozyInstance": {
+      "description": "Used to recover your language setting and your cozy's domain"
+    }
   },
   "license": "MIT",
   "bugs": {

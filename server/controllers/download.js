@@ -26,7 +26,7 @@ router.post('/create', function(req, res, next) {
 
 			// url is the location of file to download
 			// fileName is full path of destination
-			var downloadPage = function(url , fileName) {
+			var downloadFile = function(url , fileName) {
 
 				//Download a page and save to disk
 				var http = require('http');
@@ -63,7 +63,7 @@ router.post('/create', function(req, res, next) {
 			};
 			
 			console.log("persistentDirectory:" + persistentDirectory);
-			downloadPage(req.body.url, persistentDirectory+'/'+filename);
+			downloadFile(req.body.url, persistentDirectory+'/'+filename);
 
 			res.sendStatus(200);
 //       }
