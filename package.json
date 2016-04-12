@@ -21,7 +21,7 @@
     "morgan": "1.6.1",
     "node-polyglot": "2.0.0",
     "node-torrent": "0.2.1",
-    "request-json": "0.4.13",
+    "request-json": "0.4.13"
   },
   "devDependencies": {
     "nodemon": "1.8.1"
