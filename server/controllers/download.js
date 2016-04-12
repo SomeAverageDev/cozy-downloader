@@ -21,19 +21,13 @@ router.post('/downloads/', function(req, res, next) {
 		
 	var urlParsing = require('url');
 	var filename = urlParsing.parse(req.body.url).pathname;
-	var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
 	filename = filename.substring(filename.lastIndexOf('/')+1);
 
-
-	if ( typeof persistentDirectory === 'undefined') {
-		persistentDirectory = 'data';
-	}
-	console.log("persistentDirectory:" + persistentDirectory);
 
     model = req.body.download ? JSON.parse(req.body.download) : req.body;
     newDownload = new Download(model); 
 
-	newDownload.filename = persistentDirectory+'/'+filename;
+	newDownload.filename = persistentDirectory+'client/'+filename;
 	newDownload.protocol = urlParsing.parse(req.body.url).protocol;
 	newDownload.created = new Date().toISOString(); 
 	newDownload.status = 'submitted';
@@ -43,11 +37,16 @@ router.post('/downloads/', function(req, res, next) {
 	var downloadFile = function(currentProtocol, currentUrl, currentFile) {
 
 		//Download a page and save to disk
+		var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
 		var http = null;
 		var fs = require('fs');
 
-		currentFile = 'client/'+currentFile;
+		if ( typeof persistentDirectory === 'undefined') {
+			persistentDirectory = 'client/data/';
+		}
+		currentFile = persistentDirectory+'data/'+currentFile;
 
+		console.log("currentFile:" + currentFile);
 		console.log("currentProtocol:" + currentProtocol);
 
 		// CHECK PROTOCOL
