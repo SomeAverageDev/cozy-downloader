@@ -13,10 +13,15 @@
   "icon-path": "icon.png",
   "dependencies": {
     "body-parser": "1.14.2",
-    "cozydb": "0.1.7",
+    "cozy-clearance": "0.1.22",
     "cozy-notifications-helper": "1.0.2",
+    "cozy-url-sdk": "1.0.1", 
+    "cozydb": "0.1.7",
     "express": "4.13.3",
-    "morgan": "1.6.1"
+    "morgan": "1.6.1",
+    "node-polyglot": "2.0.0",
+    "node-torrent": "0.2.1",
+    "request-json": "0.4.13",
   },
   "devDependencies": {
     "nodemon": "1.8.1"
@@ -34,25 +39,25 @@
     "downloader"
   ],
   "cozy-permissions": {
-    "download": {
+    "Download": {
       "description": "Download and store files in your cozy"
     },
-    "file": {
+    "File": {
       "description": "Store files in your cozy"
     },
-    "folder": {
-      "description": "Store folders in your cozy"
+    "Folder": {
+      "description": "Use folders in your cozy"
     }, 
-    "user": {
+    "User": {
       "description": "Need information for the from part of email sent."
     },
-    "send mail from user": {
+    "Send mail from user": {
       "description": "Send links by mail"
     },
-    "send mail to user": {
+    "Send mail to user": {
       "description": "Send links by mail"
     },
-    "cozyinstance": {
+    "Cozyinstance": {
       "description": "Used to recover your language setting and your cozy's domain"
     }
   }

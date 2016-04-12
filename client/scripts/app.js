@@ -1,41 +1,7 @@
-function routerHandler() {
-
-    var $panels = $('[role="panel"]');
-    var $menuItems = $('[role="navigation"] li');
-
-    function handleRouteChange() {
-
-        var hash;
-        // Default screen management.
-        if(window.location.hash.length === 0) {
-            hash = "#crud-create";
-        } else {
-            hash = window.location.hash;
-        }
-
-        // Reset panels visibility.
-        $panels.hide();
-
-        // Select panel, and show it.
-        var $panel = $panels.filter(hash).show();
-
-        // Unselect previously selected item.
-        $menuItems.filter('[aria-selected="true"]').attr('aria-selected', false);
-
-        // Mark proper menu item as selected.
-        $menuItems.find('[href="' + hash + '"]')
-                  .parent()
-                  .attr('aria-selected', true);
-    }
-
-    window.onpopstate = handleRouteChange;
-    handleRouteChange();
-}
 
 
 function createDownloadHandler() {
 
-    var $payload = $('#crud-create .payload pre');
     var $result = $('#crud-create .result');
     var $resultStatus = $result.find(' p.status span');
     var $resultBody = $result.find('pre');
@@ -44,6 +10,10 @@ function createDownloadHandler() {
     var $button = $('#crud-create button');
 
     function onFieldChange() {
+    }
+
+    function onSubmit() {
+
         var payload = {};
 
         if ($url.val() && $url.val().length > 0) {
@@ -52,18 +22,13 @@ function createDownloadHandler() {
         if ($notify[0].checked) {
             payload.notify = true;
         }
+		payload = JSON.stringify(payload, null, 2);
 
-        $payload.html(JSON.stringify(payload, null, 2));
-    }
-
-    function onSubmit() {
-
-        var payload = $payload.html();
-        $result.removeClass('error').removeClass('success');
+		$result.removeClass('error').removeClass('success');
 
         $.ajax({
             'method': 'POST',
-            'url': 'downloads',
+            'url': 'downloads/',
             'data': payload,
             'headers': {
                 'content-type': 'application/json'
@@ -86,45 +51,48 @@ function createDownloadHandler() {
         });
     }
 
-    $url.keyup(onFieldChange);
-    $notify.change(onFieldChange);
+//    $url.keyup(onFieldChange);
+//    $notify.change(onFieldChange);
     $button.click(onSubmit);
-}
+};
 
 function listDownloadHandler() {
 
-    var $result = $('#crud-list .result');
-    var $resultStatus = $result.find(' p.status span');
-    var $resultBody = $result.find('pre');
-    var $button = $('#crud-list button');
+    var crudTable = $('#crud-list-table').dataTable();
+    var $crudListAlert = $('#crud-list-alert');
 
-    function onSubmit() {
+	$.ajax({
+		'method': 'GET',
+		'url': 'downloads/list',
+		'complete': function(xhr, textStatus) {
+			if (xhr.status !== 200) {
+				//$result.addClass('error');
+				//$resultBody.html(xhr.responseText);
+				$crudListAlert.html(xhr.responseText);
+			} else {
+				var data = xhr.responseJSON;
+				crudTable.fnClearTable();
+				for(var i = 0; i < data.length; i++) {
+					crudTable.fnAddData(
+						[ data[i].url,
+						  '<a href="'+data[i].filename+'">'+data[i].filename+'</a>',
+						  data[i].created,
+						  data[i].status,
+						  data[i].notify,
+						  data[i]._id
+						]
+					); 
+				} // End For }, error: function(e){ console.log(e.responseText); } }); }
+				crudTable.fnSort( [ [2,'desc'], [0,'asc'] ] );
 
-        $result.removeClass('error').removeClass('success');
 
-        $.ajax({
-            'method': 'GET',
-            'url': 'downloads/',
-            'complete': function(xhr, textStatus) {
-                $resultStatus.html(xhr.status);
+			}
+		}
+	});
 
-                if (xhr.status !== 200) {
-                    $result.addClass('error');
-                    $resultBody.html(xhr.responseText);
-                } else {
-                    $result.addClass('success');
-                    var formatted = JSON.stringify(xhr.responseJSON, null, 2);
-                    $resultBody.html(formatted);
-                }
-            }
-        });
-    }
-
-    $button.click(onSubmit);
-}
+};
 
 window.onload = function() {
-    routerHandler();
     createDownloadHandler();
     listDownloadHandler();
 };
