@@ -27,7 +27,7 @@ router.post('/downloads/', function(req, res, next) {
     model = req.body.download ? JSON.parse(req.body.download) : req.body;
     newDownload = new Download(model); 
 
-	newDownload.filename = persistentDirectory+'client/'+filename;
+	newDownload.filename = filename;
 	newDownload.protocol = urlParsing.parse(req.body.url).protocol;
 	newDownload.created = new Date().toISOString(); 
 	newDownload.status = 'submitted';
