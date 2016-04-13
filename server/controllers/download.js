@@ -70,7 +70,6 @@ router.post('/downloads/', function(req, res, next) {
 					fs.closeSync(fd);
 					console.log('end download file ['+currentFile+']');
 
-					var stats = fs.statSync(currentFile);
 					callback(null, currentFile, stats['size']);
 				});
 			}).on('error', function(e) {
@@ -97,7 +96,7 @@ router.post('/downloads/', function(req, res, next) {
 				}
 
 				// UPDATE download status
-				download.updateAttributes({filesize: currentFilesize,pathname: currentPath, status: currentStatus, updated: new Date().toISOString()}, function(err) {
+				download.updateAttributes({filesize: currentFilesize, pathname: currentPath, status: currentStatus, updated: new Date().toISOString()}, function(err) {
 						if (err) {
 							console.log("Got error updateAttributes: " + err);
 							next(err);
@@ -143,26 +142,47 @@ router.get('/downloads/list', function(req, res, next) {
         } else {
 			// OK
 			var fs = require('fs');
-			downloads.forEach( function () {
-				console.log(this);
-				return true;
 
-				if (item.status !== 'submitted') {
-					fs.access(item.pathname, fs.F_OK, function(err) {
-						if (err) {
-							// file does not exists !
-							item.updateAttributes({status: 'filenotfound'}, function(err, download) {
-								if(err) {
-									// ERROR
-									next(err);
-								} else {
-									// OK
-								}
-							});
-						}
-					});
+//			console.log(downloads);
+
+			for (var i=0; i < downloads.length; i++) {
+				console.log('file does not exists ('+i+'):' + downloads[i].pathname);
+
+				if (downloads[i].status !== 'submitted' ) {
+					try {
+						// check file exists
+						fs.accessSync(downloads[i].pathname, fs.F_OK);
+						// file is present
+						var stats = fs.statSync(downloads[i].pathname);
+
+						downloads[i].updateAttributes({status: 'available', filesize: stats['size']}, function(err, download) {
+							if(err) {
+								// ERROR
+								next(err);
+							} else {
+								// OK
+								download.status = 'available';
+								download.filesize = stats['size'];
+							}
+						});
+
+					}
+					catch (err) {
+						// file does not exist, updates attributes
+						downloads[i].updateAttributes({status: 'filenotfound', filesize: 0}, function(err, download) {
+							if(err) {
+								// ERROR
+								next(err);
+							} else {
+								// OK
+								download.status = 'filenotfound';
+								download.filesize = 0;
+							}
+						});
+					}
 				}
-			});
+			}
+//			console.log(downloads);
             res.status(200).json(downloads);
         }
     });
@@ -197,7 +217,7 @@ router.get('/downloads/delete/:id', function(req, res, next) {
 				var fs = require('fs');
 				try {
 					console.log('request for delete : ' + download.pathname);
-					fs.unlink(download.pathname, function(err) {});
+					fs.unlinkSync(download.pathname);
 				}
 				catch (err) {
 					console.log('file delete error'+err);

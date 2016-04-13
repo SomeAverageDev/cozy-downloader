@@ -56,6 +56,7 @@ function listDownloadHandler() {
 
 	$.ajax({
 		'method': 'GET',
+		'cache': false,
 		'url': 'downloads/list',
 		'complete': function(xhr, textStatus) {
 			if (xhr.status !== 200) {
@@ -68,8 +69,7 @@ function listDownloadHandler() {
 				for(var i = 0; i < data.length; i++) {
 					crudTable.fnAddData(
 						[ '<a href="'+data[i].url+'">'+data[i].url.substring(0, 50)+'</a>',
-//						  '<a href="data/'+data[i].filename+'">'+data[i].filename+'</a>',
-						  '<a href="data/1.dat">'+data[i].filename.substring(0, 50)+'</a>',
+						  (data[i].status == 'available') ? '<a href="downloads/'+data[i]._id+'">'+data[i].filename.substring(0, 50)+'</a>' : '-',
 						  data[i].filesize,
 						  (data[i].created) ? new Date(data[i].created).toLocaleString() : '-',
 						  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
@@ -77,7 +77,7 @@ function listDownloadHandler() {
 						  data[i].notify,
 						  '<img src="icons/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />'
 						]
-					); 
+					);
 				} // End For }, error: function(e){ console.log(e.responseText); } }); }
 				crudTable.fnSort( [ [2,'desc'], [0,'asc'] ] );
 			}
