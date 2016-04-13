@@ -2,9 +2,7 @@
 
 function createDownloadHandler() {
 
-    var $result = $('#crud-create .result');
-    var $resultStatus = $result.find(' p.status span');
-    var $resultBody = $result.find('pre');
+    var $result = $('#crud-create-alert');
     var $url = $('#create-url');
     var $notify = $('#create-notify');
     var $button = $('#crud-create button');
@@ -24,8 +22,6 @@ function createDownloadHandler() {
         }
 		payload = JSON.stringify(payload, null, 2);
 
-		$result.removeClass('error').removeClass('success');
-
         $.ajax({
             'method': 'POST',
             'url': 'downloads/',
@@ -34,18 +30,10 @@ function createDownloadHandler() {
                 'content-type': 'application/json'
             },
             'complete': function(xhr, textStatus) {
-                $resultStatus.html(xhr.status);
-
-                if (xhr.status !== 201) {
-                    $result.addClass('error');
-                    $resultBody.html(xhr.responseText);
-                } else if (!xhr.responseJSON) {
-                    $result.addClass('error');
-                    $resultBody.html('The created document is expected in the response');
+				if (xhr.status !== 200) {
+                    $result.html(xhr.responseText);
                 } else {
-                    $result.addClass('success');
-                    var formatted = JSON.stringify(xhr.responseJSON, null, 2);
-                    $resultBody.html(formatted);
+                    $result.html(xhr.responseText);
                 }
             }
         });
@@ -58,7 +46,12 @@ function createDownloadHandler() {
 
 function listDownloadHandler() {
 
-    var crudTable = $('#crud-list-table').dataTable();
+    var crudTable = $('#crud-list-table').dataTable({
+        "bPaginate": false,
+        "bFilter": false,
+        "bInfo": false
+		}
+	);
     var $crudListAlert = $('#crud-list-alert');
 
 	$.ajax({
@@ -74,23 +67,40 @@ function listDownloadHandler() {
 				crudTable.fnClearTable();
 				for(var i = 0; i < data.length; i++) {
 					crudTable.fnAddData(
-						[ data[i].url,
-						  '<a href="'+data[i].filename+'">'+data[i].filename+'</a>',
-						  data[i].created,
-						  data[i].status,
+						[ '<a href="'+data[i].url+'">'+data[i].url.substring(0, 50)+'</a>',
+//						  '<a href="data/'+data[i].filename+'">'+data[i].filename+'</a>',
+						  '<a href="data/1.dat">'+data[i].filename.substring(0, 50)+'</a>',
+						  data[i].filesize,
+						  (data[i].created) ? new Date(data[i].created).toLocaleString() : '-',
+						  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
+						  '<img src="icons/'+data[i].status+'.png" title="'+data[i].status+'" />',
 						  data[i].notify,
-						  data[i]._id
+						  '<img src="icons/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />'
 						]
 					); 
 				} // End For }, error: function(e){ console.log(e.responseText); } }); }
 				crudTable.fnSort( [ [2,'desc'], [0,'asc'] ] );
-
-
 			}
 		}
 	});
 
 };
+
+function deleteDownloadHelper (id) {
+    var $crudListAlert = $('#crud-list-alert');
+
+	$.ajax({
+		'method': 'GET',
+		'url': 'downloads/delete/'+id,
+		'complete': function(xhr, textStatus) {
+			if (xhr.status !== 200) {
+				$crudListAlert.html('delete error');
+			} else {
+				location.reload();
+			}
+		}
+	});
+}
 
 window.onload = function() {
     createDownloadHandler();

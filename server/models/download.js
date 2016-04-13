@@ -12,7 +12,15 @@ var Download = cozydb.getModel('Download', {
         'type': String,
         'default': null
     },
+    'filesize': {
+        'type': Number,
+        'default': 0
+    },
     'filename': {
+        'type': String,
+        'default': ''
+    },
+    'pathname': {
         'type': String,
         'default': ''
     },
@@ -39,9 +47,10 @@ var Download = cozydb.getModel('Download', {
     'updated': {
       'type': Date,
       'default': null
-    } 
+    }
 });
 
 
 // Make this model available from other files.
 module.exports = Download;
+

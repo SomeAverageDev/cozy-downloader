@@ -1,5 +1,10 @@
-node_modules
-data
+*.log
+*.old
 *.pdn
 *.zip
-*.old
+.vagrant
+_media
+data
+logs
+node_modules
+Vagrantfile
