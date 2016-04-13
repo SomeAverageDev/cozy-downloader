@@ -70,6 +70,7 @@ router.post('/downloads/', function(req, res, next) {
 					fs.closeSync(fd);
 					console.log('end download file ['+currentFile+']');
 
+					var stats = fs.statSync(currentFile);
 					callback(null, currentFile, stats['size']);
 				});
 			}).on('error', function(e) {
@@ -146,37 +147,43 @@ router.get('/downloads/list', function(req, res, next) {
 //			console.log(downloads);
 
 			for (var i=0; i < downloads.length; i++) {
-				console.log('file does not exists ('+i+'):' + downloads[i].pathname);
 
 				if (downloads[i].status !== 'submitted' ) {
 					try {
 						// check file exists
 						fs.accessSync(downloads[i].pathname, fs.F_OK);
-						// file is present
-						var stats = fs.statSync(downloads[i].pathname);
 
-						downloads[i].updateAttributes({status: 'available', filesize: stats['size']}, function(err, download) {
+						// file is present, checking size
+						var stats = fs.statSync(downloads[i].pathname);
+						var currentFilesize = stats['size'];
+						var currentStatus = 'error';
+						if (currentFilesize > 0) {
+							currentStatus = 'available';
+						}
+
+						// update attributes
+						downloads[i].updateAttributes({status: currentStatus, filesize: currentFilesize}, function(err, download) {
 							if(err) {
 								// ERROR
-								next(err);
+								return console.log(err);
 							} else {
 								// OK
-								download.status = 'available';
-								download.filesize = stats['size'];
+								return true;
 							}
 						});
 
+
 					}
 					catch (err) {
-						// file does not exist, updates attributes
+						console.log('file does not exists ('+i+'):' + downloads[i].pathname);
+						// file does not exist, update attributes
 						downloads[i].updateAttributes({status: 'filenotfound', filesize: 0}, function(err, download) {
 							if(err) {
 								// ERROR
-								next(err);
+								return console.log(err);
 							} else {
 								// OK
-								download.status = 'filenotfound';
-								download.filesize = 0;
+								return true;
 							}
 						});
 					}
