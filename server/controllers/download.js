@@ -42,9 +42,9 @@ router.post('/downloads/', function(req, res, next) {
 		var fs = require('fs');
 
 		if ( typeof persistentDirectory === 'undefined') {
-			persistentDirectory = 'client/data/';
+			persistentDirectory = './client/data/';
 		}
-		currentFile = persistentDirectory+'data/'+currentFile;
+		currentFile = persistentDirectory+'/client/data/'+currentFile;
 
 		console.log("currentFile:" + currentFile);
 		console.log("currentProtocol:" + currentProtocol);
