@@ -8,8 +8,6 @@ var cozydb = require('cozydb');
 // Create a new download
 router.post('/downloads/', function(req, res, next) {
 
-	console.log("router.post.download:START");
-
 	var urlParsing = require('url');
 	var filename = urlParsing.parse(req.body.url).pathname;
 	filename = filename.substring(filename.lastIndexOf('/')+1);
@@ -25,8 +23,6 @@ router.post('/downloads/', function(req, res, next) {
 	// url is the location of file to download
 	// filename is full path of destination
 	var downloadFile = function(currentProtocol, currentUrl, currentFile, callback) {
-
-		console.log("router.post.download.downloadFile:START");
 
 		//Download a page and save to disk
 		var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
@@ -78,7 +74,6 @@ router.post('/downloads/', function(req, res, next) {
 				console.log("Got error: " + e.message);
 			});
 		}
-		console.log("router.post.download.downloadFile:END");
 
 	};
 
@@ -127,8 +122,6 @@ router.post('/downloads/', function(req, res, next) {
 			res.sendStatus(200);
        }
     });
-
-	console.log("router.post.downloads:END");
 
 });
 
@@ -218,16 +211,16 @@ router.get('/downloads/delete/:id', function(req, res, next) {
             next(err);
         } else if(!download) {
             // DOC NOT FOUND
-            //res.sendStatus(404);
+            res.sendStatus(404);
         } else {
 			if (download.pathname != null) {
 				var fs = require('fs');
 				try {
-					console.log('request for delete : ' + download.pathname);
+					console.log('request for delete file:' + download.pathname);
 					fs.unlinkSync(download.pathname);
 				}
 				catch (err) {
-					console.log('file delete error'+err);
+					console.log('file delete error:'+err);
 				}
 
 			}
