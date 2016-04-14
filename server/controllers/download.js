@@ -175,6 +175,7 @@ router.get('/downloads/:id', function(req, res, next) {
 			// OK
 			var redir = download.pathname;
 			redir = redir.replace('./client','');
+			redir = redir.replace(process.env.APPLICATION_PERSISTENT_DIRECTORY, '');
             res.redirect(redir);
         }
     });
