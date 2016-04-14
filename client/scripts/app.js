@@ -74,8 +74,8 @@ function listDownloadHandler() {
 						  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
 						  '<img src="icons/'+data[i].status+'.png" title="'+data[i].status+'" />',
 						  data[i].notify,
-						  '<img src="icons/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />',
-							data[i].created
+						  '<img src="icons/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />'
+//					,	data[i].created
 						]
 					);
 				} // End For }, error: function(e){ console.log(e.responseText); } }); }
