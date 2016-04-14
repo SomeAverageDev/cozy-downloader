@@ -1,6 +1,6 @@
 {
   "name": "cozy-downloader",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Download files from a given URL",
   "displayName": "Downloader",
   "author": "SomeAverageDev",
@@ -18,6 +18,7 @@
     "cozy-url-sdk": "1.0.1", 
     "cozydb": "0.1.7",
     "express": "4.13.3",
+    "httpreq": "0.4.16",
     "morgan": "1.6.1",
     "node-polyglot": "2.0.0",
     "node-torrent": "0.2.1",

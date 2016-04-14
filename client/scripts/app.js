@@ -7,8 +7,7 @@ function createDownloadHandler() {
     var $notify = $('#create-notify');
     var $button = $('#crud-create button');
 
-    function onFieldChange() {
-    }
+//    function onFieldChange() {    }
 
     function onSubmit() {
 
@@ -75,11 +74,12 @@ function listDownloadHandler() {
 						  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
 						  '<img src="icons/'+data[i].status+'.png" title="'+data[i].status+'" />',
 						  data[i].notify,
-						  '<img src="icons/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />'
+						  '<img src="icons/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />',
+							data[i].created
 						]
 					);
 				} // End For }, error: function(e){ console.log(e.responseText); } }); }
-				crudTable.fnSort( [ [2,'desc'], [0,'asc'] ] );
+				crudTable.fnSort( [ [8,'desc'], [0,'asc'] ] );
 			}
 		}
 	});

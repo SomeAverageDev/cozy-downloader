@@ -8,6 +8,8 @@ var cozydb = require('cozydb');
 // Create a new download
 router.post('/downloads/', function(req, res, next) {
 
+	//Download.findByURL(req.body.url);
+
 	var urlParsing = require('url');
 	var filename = urlParsing.parse(req.body.url).pathname;
 	filename = filename.substring(filename.lastIndexOf('/')+1);
@@ -20,105 +22,71 @@ router.post('/downloads/', function(req, res, next) {
 	newDownload.created = new Date().toISOString();
 	newDownload.status = 'submitted';
 
-	// url is the location of file to download
-	// filename is full path of destination
-	var downloadFile = function(currentProtocol, currentUrl, currentFile, callback) {
+	var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
 
-		//Download a page and save to disk
-		var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
-		var http = null;
-		var fs = require('fs');
+	if ( typeof persistentDirectory === 'undefined') {
+		persistentDirectory = './client/data';
+	}
+	newDownload.pathname = persistentDirectory+'/'+newDownload.filename;
 
-		if ( typeof persistentDirectory === 'undefined') {
-			persistentDirectory = './client/data';
-		}
-		currentFile = persistentDirectory+'/'+currentFile;
-
-		console.log("currentFile:" + currentFile);
-		console.log("currentProtocol:" + currentProtocol);
-
-		// CHECK PROTOCOL
-		if (currentProtocol.match(/^https*:$/)) {
-			// HTTP ou HTTPs
-			currentProtocol = currentProtocol.slice(0, -1); // remove ':'
-			// loading library
-			http = require(currentProtocol);
-
-			http.get(currentUrl, function(response) {
-				if (response.statusCode !== 200) {
-					if (response) {
-						console.log(response.statusCode + ' ERROR getting ' + currentUrl);
-					}
-					callback(response.statusCode + ' ERROR getting ' + currentUrl);
-				}
-				console.log('start download from URL ['+currentUrl+'], saving to file ['+currentFile+']');
-				var fd = fs.openSync(currentFile, 'w');
-				response.on("data", function(chunk) {
-					fs.write(fd, chunk,  0, chunk.length, null, function(err, written, buffer) {
-						if(err) {
-							callback(err);
-							console.log(err);
-						}
-					});
-				 });
-
-				response.on("end", function() {
-					fs.closeSync(fd);
-					console.log('end download file ['+currentFile+']');
-
-					var stats = fs.statSync(currentFile);
-					callback(null, currentFile, stats['size']);
-				});
-			}).on('error', function(e) {
-				callback(e.message);
-				console.log("Got error: " + e.message);
-			});
-		}
-
-	};
+	console.log ('newDownload.pathname:'+newDownload.pathname);
+	console.log ('newDownload.filename:'+newDownload.filename);
 
 	Download.create(newDownload, function(err, download) {
         if(err) {
             // ERROR
-            next(err);
+			res.status(500).send({
+              app: req.application,
+              error: true,
+              message: err.message,
+              stack: err.stack
+            });
         } else {
-			// OK downloading
-			downloadFile(newDownload.protocol, newDownload.url, newDownload.filename, function (err, currentPath, currentFilesize) {
+			// OK downloading from URL
+			// https://github.com/SamDecrock/node-httpreq#download
+			var httpreq = require('httpreq');
 
-				console.log("router.post.download.downloadFile:END");
-				var currentStatus = 'available';
-		        if(err) {
-					currentStatus = 'error';
-				}
-
-				// UPDATE download status
-				download.updateAttributes({filesize: currentFilesize, pathname: currentPath, status: currentStatus, updated: new Date().toISOString()}, function(err) {
+			httpreq.download( download.url , download.pathname ,
+				function (err, progress) {
+					if (err) return console.log(err);
+					//console.log(progress);
+				},
+				function (err, res){
+					if (err) return console.log(err);
+					else {
+						var currentStatus = 'available';
 						if (err) {
-							console.log("Got error updateAttributes: " + err);
-							next(err);
+							currentStatus = 'error';
+						} else {
+
+							// UPDATE download status
+							download.updateAttributes ({filesize: res.headers['content-length'], status: currentStatus, updated: new Date().toISOString()}, function(err) {
+								if (err) {
+									console.log("Got error updateAttributes: " + err);
+									next(err);
+								}
+							});
+						}
+
+						// email notification
+						if (false && download.notify == true) {
+							var mailOptions = {
+								from: 'myCozy',
+								subject: 'Cozy Downloader : your download is successful',
+								content: 'You file ['+download.filename+'] has been downloaded ! Find it on your instance',
+							};
+
+							cozydb.api.sendMailToUser(mailOptions, function(err) {
+								console.log('sent update mail to cozy user');
+								if (err) {
+									console.log(err);
+								}
+							});
 						}
 					}
-				);
-
-				// email notification
-				if (false && download.notify == true) {
-
-					var mailOptions = {
-						from: 'myCozy',
-						subject: 'Cozy Downloader : your download is successful',
-						content: 'You file ['+download.filename+'] has been downloaded ! Find it on your instance',
-					};
-
-					cozydb.api.sendMailToUser(mailOptions, function(err) {
-						console.log('sent update mail to cozy user');
-						if (err) {
-							console.log(err);
-						}
-					});
+					console.log(res);
 				}
-
-			});
-
+			);
 			res.sendStatus(200);
        }
     });
@@ -148,14 +116,18 @@ router.get('/downloads/list', function(req, res, next) {
 
 						// file is present, checking size
 						var stats = fs.statSync(downloads[i].pathname);
-						var currentFilesize = stats['size'];
+						var localFilesize = stats['size'];
 						var currentStatus = 'error';
-						if (currentFilesize > 0) {
+						if (localFilesize > 0) {
 							currentStatus = 'available';
 						}
 
 						// update attributes
-						downloads[i].updateAttributes({status: currentStatus, filesize: currentFilesize}, function(err, download) {
+						downloads[i].status = currentStatus;
+						downloads[i].filesize = localFilesize;
+						downloads[i].save(function (err) {});
+/*
+						downloads[i].updateAttributes({status: currentStatus, filesize: localFilesize}, function(err, download) {
 							if(err) {
 								// ERROR
 								return console.log(err);
@@ -164,12 +136,16 @@ router.get('/downloads/list', function(req, res, next) {
 								return true;
 							}
 						});
-
+*/
 
 					}
 					catch (err) {
 						console.log('file does not exists ('+i+'):' + downloads[i].pathname);
 						// file does not exist, update attributes
+						downloads[i].status = 'filenotfound';
+						downloads[i].filesize = 0;
+						downloads[i].save(function (err) {});
+/*
 						downloads[i].updateAttributes({status: 'filenotfound', filesize: 0}, function(err, download) {
 							if(err) {
 								// ERROR
@@ -179,6 +155,7 @@ router.get('/downloads/list', function(req, res, next) {
 								return true;
 							}
 						});
+*/
 					}
 				}
 			}
@@ -196,7 +173,9 @@ router.get('/downloads/:id', function(req, res, next) {
             next(err);
         } else {
 			// OK
-            res.status(200).send(download);
+			var redir = download.pathname;
+			redir = redir.replace('./client','');
+            res.redirect(redir);
         }
     });
 });
