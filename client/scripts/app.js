@@ -11,10 +11,10 @@ function retryDownloadHelper(id) {
 			//console.log(xhr);
 			if (xhr.status !== 200) {
 				$crudAlert.html('Retry request error');
-				autoReload();
+				window.setTimeout(updateListDownloads(), 2000);
 			} else {
 				$crudAlert.html('Retry request successful !');
-				autoReload();
+				window.setTimeout(updateListDownloads(), 2000);
 			}
 		}
 	});
@@ -31,10 +31,10 @@ function deleteDownloadHelper (id) {
 			//console.log(xhr);
 			if (xhr.status !== 200) {
 				$crudAlert.html('Delete request error...');
-				updateListDownloads();
+				window.setTimeout(updateListDownloads(), 2000);
 			} else {
 				$crudAlert.html('Delete request successful !');
-				updateListDownloads();
+				window.setTimeout(updateListDownloads(), 2000);
 			}
 		}
 	});
@@ -88,7 +88,7 @@ function createDownloadHandler() {
                 } else {
 					$crudAlert.html('Download request successful !');
                 }
-				updateListDownloads();
+				window.setTimeout(updateListDownloads(), 2000);
 
 			}
 
