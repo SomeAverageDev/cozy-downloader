@@ -143,14 +143,16 @@ router.post('/downloads/', function(req, res, next) {
 
 	// looking for same URL
 	//console.log(req);
-	Download.request('byUrl', {key: req.body.url}, function(err, sameURL) {
+	Download.request ('byUrl', {
+            'key': req.body.url
+          }, function(err, foundDownload) {
         if(err) {
 			next (err);
 		} else {
-			console.log(sameURL.length);
-			if (sameURL.length > 0) {
-				console.log ('SAME URL FOUND:',sameURL);
-				return res.status(500).send('the URL is already known !');
+			console.log(foundDownload.length);
+			if (foundDownload.length > 0) {
+				console.log ('SAME URL FOUND:',foundDownload);
+				return res.status(500).send('this URL is already known !');
 			} else {
 				console.log ('NO URL FOUND:');
 				// NOT FOUND > continue to download

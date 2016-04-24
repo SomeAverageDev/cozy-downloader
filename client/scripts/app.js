@@ -61,11 +61,12 @@ function createDownloadHandler() {
     var $notify = $('#create-notify');
     var $button = $('#crud-create button');
 
-
 //    function onFieldChange() {    }
 
     function onSubmit() {
 		var $crudAlert = $('#crud-alert');
+
+		$('#new-url-form')[0].reset();
 
         var formData = {};
 		$crudAlert.html('Download request submitted...');
@@ -80,26 +81,21 @@ function createDownloadHandler() {
 
 		console.log('ajax:start:',formData);
         $.ajax({
-            method: 'POST',
-            url: 'downloads/',
-            data: formData,
-            headers: {
+            'method': 'POST',
+            'url': 'downloads/',
+            'data': formData,
+            'headers': {
                 'content-type': 'application/json'
             },
-			success: function(xhr, textStatus) {
-				console.log(xhr);
-			},
-			error: function(xhr, textStatus) {
-				console.log(xhr);
-			},
-			complete: function(xhr, textStatus) {
-				console.log(xhr);
+			'complete': function(xhr, textStatus) {
+				console.log('complete:',xhr);
 				if (xhr.status !== 200) {
-					$crudAlert.html('Download request error...');
+					$crudAlert.html('Download request error : '+xhr.responseText);
                 } else {
 					$crudAlert.html('Download request successful !');
                 }
 			}
+
         });
 		console.log('ajax:end');
 		return true;
@@ -161,6 +157,10 @@ function autoReload() {
 }
 
 window.onload = function() {
+	$("form").on("submit", function (e) {
+		// remove default submit event
+		e.preventDefault();
+	});
     createDownloadHandler();
     initListDownloads();
 	updateListDownloads();
