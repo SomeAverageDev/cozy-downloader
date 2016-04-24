@@ -12,6 +12,10 @@ var Download = cozydb.getModel('Download', {
         'type': String,
         'default': null
     },
+    'fileprogress': {
+        'type': Number,
+        'default': 0
+    },
     'filesize': {
         'type': Number,
         'default': 0
@@ -35,6 +39,10 @@ var Download = cozydb.getModel('Download', {
     'status': {
         'type': String,
         'default': 'submitted'
+    },
+    'statusMessage': {
+        'type': String,
+        'default': null
     },
 	'token': {
       'type': String,

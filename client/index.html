@@ -8,7 +8,8 @@
     <title>Cozy - Downloader</title>
 
     <!-- Bootstrap -->
-    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+	<link href="vendor/styles/custom.css" rel="stylesheet" type="text/css">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -19,67 +20,84 @@
   </head>
   <body>
 
-	<div class="panel panel-default">
-	  <div class="panel-body">
+	<!-- Modal -->
+	<div id="myModal" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
 
-		<div class="panel panel-info">
-		  <div class="panel-heading">Download a new file</div>
-		  <div class="panel-body">
-
+		<!-- Modal content-->
+		<div class="modal-content">
+		  <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			<h4 class="modal-title">Download a new file</h4>
+		  </div>
+		  <div class="modal-body">
 			<div class="container" id="crud-create">
-				<form class="form-horizontal" role="form">
+				<form class="form-inline" role="form">
 					<div class="form-group">
-					  <label class="control-label col-sm-2" for="create-url">URL :</label>
-					  <div class="col-sm-10">
-						<input type="url" class="form-control" id="create-url" placeholder="Enter URL">
-					  </div>
+					  <label class="control-label" for="create-url">URL :</label>
+						<input type="url" class="" id="create-url" placeholder="Enter URL">
 					</div>
 
 					<div class="form-group">
-					<div class="col-sm-offset-2 col-sm-10">
 					  <div class="checkbox">
-						<label><input type="checkbox" id="create-notify"> Notify me</label>
+						<label class="control-label" for="create-notify">
+							<input type="checkbox" id="create-notify"> Notify me
+						</label>
 					  </div>
-					</div>
 					</div>
 
 					<div class="form-group">        
-					  <div class="col-sm-offset-2 col-sm-10">
 						<button class="btn btn-default" >Download</button>
-					  </div>
 					</div>
 				</form>
-
-				<div class="alert alert-warning" role="alert" id="crud-create-alert" aria-hidden="true"></div>
 
 			</div>
 
 		  </div>
+		  <div class="modal-footer">
+			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		  </div>
 		</div>
 
-		<div class="panel panel-success">
-		  <div class="panel-heading">Available files</div>
+	  </div>
+	</div>
+
+	<div class="panel panel-default">
+	  <div class="panel-body">
+
+		<div class="panel">
+		  <div class="panel-heading">
+			<!-- Trigger the modal with a button -->
+			<div class="row">
+				<div class="col-sm-2"><h4>Available files</h4></div>
+				<div class="col-sm-8 text-center">
+					<div id="crud-alert" class="center-block"></div>
+				</div>
+				<div class="col-sm-2 text-right" >
+					<button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal">Submit download</button>
+				</div>
+			</div>
+		  </div>
 		  <div class="panel-body">
+
 			<div class="container" id="crud-list">
 				<form class="form-horizontal" role="form">
 					<table id="crud-list-table" class="display table table-bordered">
 						<thead>
 							<tr>
-							<th style="width:40%" class="sorting_asc"> URL </th>
-							<th data-sortable="true">Filename</th>
-							<th data-sortable="true">Size</th>
-							<th data-sortable="true">Created</th>
-							<th data-sortable="true">Updated</th>
-							<th data-sortable="true">Status</th>
-							<th data-sortable="true">Notify</th>
-							<th data-sortable="false">Action</th>
+							<th class="sorting_asc">URL</th>
+							<!-- <th data-sortable="true">Filename</th> -->
+							<th style="width:100px" data-sortable="true">Progress</th>
+							<th style="width:50px" data-sortable="true">Created</th>
+							<th style="width:50px" data-sortable="true">Updated</th>
+							<th style="width:50px" data-sortable="true">Status</th>
+							<!-- <th data-sortable="true">Notify</th> -->
+							<th style="width:180px" data-sortable="false">Actions</th>
 							<!-- <th data-sortable="false" data-visible="false">isoDate</th> -->
 							</tr>
 						 </thead>
 					</table>
 				</form>
-
-				<div class="alert alert-warning" role="alert" id="crud-list-alert" aria-hidden="true"></div>
 
 			</div>
 

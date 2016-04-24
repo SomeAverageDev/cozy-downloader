@@ -1,108 +1,169 @@
+// REFRESH FROM http://www.meadow.se/wordpress/refreshing-data-in-jquery-datatables/
 
-
-function createDownloadHandler() {
-
-    var $result = $('#crud-create-alert');
-    var $url = $('#create-url');
-    var $notify = $('#create-notify');
-    var $button = $('#crud-create button');
-
-//    function onFieldChange() {    }
-
-    function onSubmit() {
-
-        var payload = {};
-
-        if ($url.val() && $url.val().length > 0) {
-            payload.url = $url.val();
-        }
-        if ($notify[0].checked) {
-            payload.notify = true;
-        }
-		payload = JSON.stringify(payload, null, 2);
-
-        $.ajax({
-            'method': 'POST',
-            'url': 'downloads/',
-            'data': payload,
-            'headers': {
-                'content-type': 'application/json'
-            },
-            'complete': function(xhr, textStatus) {
-				if (xhr.status !== 200) {
-                    $result.html(xhr.responseText);
-                } else {
-                    $result.html(xhr.responseText);
-                }
-            }
-        });
-    }
-
-//    $url.keyup(onFieldChange);
-//    $notify.change(onFieldChange);
-    $button.click(onSubmit);
-};
-
-function listDownloadHandler() {
-
-    var crudTable = $('#crud-list-table').dataTable({
-        "bPaginate": false,
-        "bFilter": false,
-        "bInfo": false
-		}
-	);
-    var $crudListAlert = $('#crud-list-alert');
+function retryDownloadHelper(id) {
+    var $crudAlert = $('#crud-alert');
+	$crudAlert.html('Retry request submitted...');
 
 	$.ajax({
 		'method': 'GET',
-		'cache': false,
-		'url': 'downloads/list',
+		'url': 'downloads/retry/'+id,
 		'complete': function(xhr, textStatus) {
+			//console.log(xhr);
 			if (xhr.status !== 200) {
-				//$result.addClass('error');
-				//$resultBody.html(xhr.responseText);
-				$crudListAlert.html(xhr.responseText);
+				$crudAlert.html('Retry request error');
+				autoReload();
 			} else {
-				var data = xhr.responseJSON;
-				crudTable.fnClearTable();
-				for(var i = 0; i < data.length; i++) {
-					crudTable.fnAddData(
-						[ '<a href="'+data[i].url+'">'+data[i].url.substring(0, 50)+'</a>',
-						  (data[i].status == 'available') ? '<a href="downloads/'+data[i]._id+'">'+data[i].filename.substring(0, 50)+'</a>' : '-',
-						  data[i].filesize,
-						  (data[i].created) ? new Date(data[i].created).toLocaleString() : '-',
-						  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
-						  '<img src="icons/'+data[i].status+'.png" title="'+data[i].status+'" />',
-						  data[i].notify,
-						  '<img src="icons/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />'
-//					,	data[i].created
-						]
-					);
-				} // End For }, error: function(e){ console.log(e.responseText); } }); }
-				crudTable.fnSort( [ [8,'desc'], [0,'asc'] ] );
-			}
-		}
-	});
-
-};
-
-function deleteDownloadHelper (id) {
-    var $crudListAlert = $('#crud-list-alert');
-
-	$.ajax({
-		'method': 'GET',
-		'url': 'downloads/delete/'+id,
-		'complete': function(xhr, textStatus) {
-			if (xhr.status !== 200) {
-				$crudListAlert.html('delete error');
-			} else {
-				location.reload();
+				$crudAlert.html('Retry request successful !');
+				autoReload();
 			}
 		}
 	});
 }
 
+function deleteDownloadHelper (id) {
+    var $crudAlert = $('#crud-alert');
+	$crudAlert.html('Delete request submitted...');
+
+	$.ajax({
+		'method': 'GET',
+		'url': 'downloads/delete/'+id,
+		'complete': function(xhr, textStatus) {
+			//console.log(xhr);
+			if (xhr.status !== 200) {
+				$crudAlert.html('Delete request error...');
+				updateListDownloads();
+			} else {
+				$crudAlert.html('Delete request successful !');
+				updateListDownloads();
+			}
+		}
+	});
+}
+
+function getDownloadHelper (id) {
+	window.location = 'downloads/'+id;
+}
+
+function initListDownloads() {
+    var crudTable = $('#crud-list-table').dataTable({
+        "bPaginate": false,
+        "bFilter": false,
+        "bInfo": false,
+		"retrieve": true,
+		"bJQueryUI": true,
+		"sAjaxSource": 'downloads/list'
+		}
+	);
+};
+
+function createDownloadHandler() {
+    var $url = $('#create-url');
+    var $notify = $('#create-notify');
+    var $button = $('#crud-create button');
+
+
+//    function onFieldChange() {    }
+
+    function onSubmit() {
+		var $crudAlert = $('#crud-alert');
+
+        var formData = {};
+		$crudAlert.html('Download request submitted...');
+
+        if ($url.val() && $url.val().length > 0) {
+            formData.url = $url.val();
+        }
+        if ($notify[0].checked) {
+            formData.notify = true;
+        }
+		formData = JSON.stringify(formData, null, 2);
+
+		console.log('ajax:start:',formData);
+        $.ajax({
+            method: 'POST',
+            url: 'downloads/',
+            data: formData,
+            headers: {
+                'content-type': 'application/json'
+            },
+			success: function(xhr, textStatus) {
+				console.log(xhr);
+			},
+			error: function(xhr, textStatus) {
+				console.log(xhr);
+			},
+			complete: function(xhr, textStatus) {
+				console.log(xhr);
+				if (xhr.status !== 200) {
+					$crudAlert.html('Download request error...');
+                } else {
+					$crudAlert.html('Download request successful !');
+                }
+			}
+        });
+		console.log('ajax:end');
+		return true;
+    }
+
+//    $url.keyup(onFieldChange);
+//    $notify.change(onFieldChange);
+    $button.click(onSubmit);
+	console.log('button:created');
+};
+
+function updateListDownloads() {
+	$.getJSON('downloads/list', null, function( data )
+	{
+		var crudTable = $('#crud-list-table').dataTable();
+		if (crudTable && data) {
+			oSettings = crudTable.fnSettings();
+			crudTable.fnClearTable(this);
+
+			for (var i=0; i<data.length; i++)
+			{
+				data[i].pourcentage = parseInt(data[i].fileprogress/data[i].filesize*100);
+				(isNaN(data[i].pourcentage)) ? (data[i].pourcentage = 0): '';
+
+				var actions = '<button type="button" class="btn btn-danger btn-sm" onClick="deleteDownloadHelper(\''+data[i]._id+'\')">Delete</button>&nbsp;';
+
+				if (data[i].status === 'available') {
+					actions += '<button type="button" class="btn btn-success btn-sm" onClick="getDownloadHelper(\''+data[i]._id+'\')">Retrieve</button>&nbsp;';
+				} else if (data[i].status !== 'submitted') {
+					actions += '<button type="button" class="btn btn-info btn-sm" onClick="retryDownloadHelper(\''+data[i]._id+'\')">Retry</button>';
+				}
+
+				crudTable.fnAddData(
+					[ '<a target="_blank" href="'+data[i].url+'">'+data[i].url.substring(0, 70)+'</a>',
+		//						  (data[i].status == 'available') ? '<a href="downloads/'+data[i]._id+'">'+data[i].filename.substring(0, 50)+'</a>' : '-',
+					  ('<div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="'+data[i].pourcentage+'" aria-valuemin="0" aria-valuemax="100" style="width:'+data[i].pourcentage+'%"><span class="sr-only">'+data[i].pourcentage+'% Complete</span></div></div>'),
+					  (data[i].created) ? new Date(data[i].created).toLocaleString() : '-',
+					  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
+					  '<img src="icons/'+data[i].status+'.png" title="'+data[i].status+'" />',
+					  //data[i].notify,
+					  //'<img src="icons/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />'
+					  actions
+		//					,	data[i].created
+					]
+				);
+			}
+
+			oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
+			crudTable.fnDraw();
+		}
+	});
+
+
+}
+
+function autoReload() {
+  updateListDownloads();
+  setTimeout(function(){autoReload();}, 20000);
+}
+
 window.onload = function() {
     createDownloadHandler();
-    listDownloadHandler();
+    initListDownloads();
+	updateListDownloads();
+	//setTimeout(function(){autoReload();}, 20000);
 };
+

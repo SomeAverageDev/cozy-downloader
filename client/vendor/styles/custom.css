@@ -1,0 +1,18 @@
+.panel-heading {
+background-color: #455569;
+}
+.panel-heading h4 {
+color: #ffffff;
+}
+.panel-heading .col-sm-4 {
+text-align:right;
+}
+
+#crud-alert {
+color: #ffff99;
+margin-top: 10px;
+font-size: 18px;
+}
+
+#crud-list-table_wrapper th {
+}
