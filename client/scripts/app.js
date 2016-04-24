@@ -61,14 +61,10 @@ function createDownloadHandler() {
     var $notify = $('#create-notify');
     var $button = $('#crud-create button');
 
-//    function onFieldChange() {    }
-
     function onSubmit() {
 		var $crudAlert = $('#crud-alert');
 
-		$('#new-url-form')[0].reset();
-
-        var formData = {};
+		var formData = {};
 		$crudAlert.html('Download request submitted...');
 
         if ($url.val() && $url.val().length > 0) {
@@ -79,7 +75,6 @@ function createDownloadHandler() {
         }
 		formData = JSON.stringify(formData, null, 2);
 
-		console.log('ajax:start:',formData);
         $.ajax({
             'method': 'POST',
             'url': 'downloads/',
@@ -88,23 +83,22 @@ function createDownloadHandler() {
                 'content-type': 'application/json'
             },
 			'complete': function(xhr, textStatus) {
-				console.log('complete:',xhr);
 				if (xhr.status !== 200) {
 					$crudAlert.html('Download request error : '+xhr.responseText);
                 } else {
 					$crudAlert.html('Download request successful !');
                 }
+				updateListDownloads();
+
 			}
 
         });
-		console.log('ajax:end');
+
+		$('#new-url-form')[0].reset();
 		return true;
     }
 
-//    $url.keyup(onFieldChange);
-//    $notify.change(onFieldChange);
     $button.click(onSubmit);
-	console.log('button:created');
 };
 
 function updateListDownloads() {
@@ -164,6 +158,7 @@ window.onload = function() {
     createDownloadHandler();
     initListDownloads();
 	updateListDownloads();
-	//setTimeout(function(){autoReload();}, 20000);
+	// auto reload table
+	setTimeout(function(){autoReload();}, 20000);
 };
 

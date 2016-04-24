@@ -140,18 +140,22 @@ var proceedWithDownload = function (download) {
 
 // Create a new download
 router.post('/downloads/', function(req, res, next) {
+	//console.log(req.body);
+
+	if (req.body.url === '') {
+		return res.status(500).send('the url parameter is empty');
+	}
 
 	// looking for same URL
-	//console.log(req);
 	Download.request ('byUrl', {
             'key': req.body.url
           }, function(err, foundDownload) {
         if(err) {
 			next (err);
 		} else {
-			console.log(foundDownload.length);
+			//console.log(foundDownload.length);
 			if (foundDownload.length > 0) {
-				console.log ('SAME URL FOUND:',foundDownload);
+				//console.log ('SAME URL FOUND:',foundDownload);
 				return res.status(500).send('this URL is already known !');
 			} else {
 				console.log ('NO URL FOUND:');
