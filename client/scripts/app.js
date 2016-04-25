@@ -126,7 +126,7 @@ function updateListDownloads() {
 				crudTable.fnAddData(
 					[ '<a target="_blank" href="'+data[i].url+'">'+data[i].url.substring(0, 70)+'</a>',
 		//						  (data[i].status == 'available') ? '<a href="downloads/'+data[i]._id+'">'+data[i].filename.substring(0, 50)+'</a>' : '-',
-					  ('<div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="'+data[i].pourcentage+'" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width:'+data[i].pourcentage+'%">'+data[i].pourcentage+'%</div></div>'),
+					  (data[i].pourcentage>0) ? ('<div class="progress"><div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="'+data[i].pourcentage+'" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width:'+data[i].pourcentage+'%">'+data[i].pourcentage+'%</div></div>'):'-',
 					  (data[i].created) ? new Date(data[i].created).toLocaleString() : '-',
 					  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
 					  '<img src="icons/'+data[i].status+'.png" title="'+data[i].status+'" />',
