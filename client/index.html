@@ -24,93 +24,85 @@
 	<div id="myModal" class="modal fade" role="dialog">
 	  <div class="modal-dialog">
 
-		<!-- Modal content-->
-		<div class="modal-content">
-		  <div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal">&times;</button>
-			<h4 class="modal-title">Download a new file</h4>
-		  </div>
-		  <div class="modal-body">
-			<div class="container" id="crud-create">
-				<form class="form-inline" id="new-url-form" role="form">
-					<div class="form-group">
-					  <label class="control-label" for="create-url">URL :</label>
-						<input type="url" class="" id="create-url" placeholder="Enter URL">
+		<form class="form-inline" id="new-url-form" role="form">
+			<!-- Modal content-->
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Download a new file from URL</h4>
+			  </div>
+			  <!-- Modal body -->
+			  <div class="modal-body">
+				<div class="container" id="crud-create-container">
+					<div class="input-group">
+						<span class="input-group-addon" id="basic-addon1">URL :</span>
+						<input type="url" title="URL" class="form-control" id="create-url" placeholder="Enter URL" aria-describedby="basic-addon1" />
 					</div>
-
-					<div class="form-group">
+					<div class="input-group">
 					  <div class="checkbox">
 						<label class="control-label" for="create-notify">
-							<input type="checkbox" id="create-notify"> Notify me
+							<input type="checkbox" title="Notify me by mail" id="create-notify" /> Notify me
 						</label>
 					  </div>
 					</div>
 
-					<div class="form-group">        
-						<button class="btn btn-default" data-dismiss="modal">Download</button>
-					</div>
-				</form>
-
+				</div>
+			  </div>
+			  <!-- Modal footer -->
+			  <div class="modal-footer">
+			    <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+				<button class="btn btn-primary btn-success" title="Submit download" data-dismiss="modal">Download</button>
+			  </div>
 			</div>
-
-		  </div>
-		  <div class="modal-footer">
-			<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-		  </div>
-		</div>
+		</form>
 
 	  </div>
+
 	</div>
 
-	<div class="panel panel-default">
-	  <div class="panel-body">
-
-		<div class="panel">
-		  <div class="panel-heading">
-			<!-- Trigger the modal with a button -->
-			<div class="row">
-				<div class="col-sm-2"><h4>Available files</h4></div>
-				<div class="col-sm-8 text-center">
-					<div id="crud-alert" class="center-block"></div>
+	<div class="panel">
+		<div class="panel-body">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<!-- Trigger the modal with a button -->
+					<div class="row">
+						<div class="col-md-1 text-center"><img src="public/main_icon.png" width="40" /></div>
+						<div class="col-md-2"><h4>Available files</h4></div>
+						<div class="col-md-7 text-center">
+							<div id="crud-alert" class="center-block"></div>
+						</div>
+						<div class="col-md-2 text-right" >
+							<button id="submit-new-button" type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal">Submit download</button>
+						</div>
+					</div>
 				</div>
-				<div class="col-sm-2 text-right" >
-					<button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal">Submit download</button>
-				</div>
-			</div>
-		  </div>
-		  <div class="panel-body">
+				<div class="panel-body"></div>
 
-			<div class="container" id="crud-list">
-				<form class="form-horizontal" role="form">
-					<table id="crud-list-table" class="display table table-bordered">
-						<thead>
-							<tr>
+				<table id="crud-list-table" class="table display table-bordered">
+					<thead>
+						<tr>
 							<th class="sorting_asc">URL</th>
 							<!-- <th data-sortable="true">Filename</th> -->
-							<th style="width:100px" data-sortable="true">Progress</th>
+							<th style="width:120px" data-sortable="true">Progress</th>
 							<th style="width:50px" data-sortable="true">Created</th>
 							<th style="width:50px" data-sortable="true">Updated</th>
 							<th style="width:50px" data-sortable="true">Status</th>
+							<th style="width:50px" data-sortable="true">Size</th>
 							<!-- <th data-sortable="true">Notify</th> -->
 							<th style="width:200px" data-sortable="false">Actions</th>
 							<!-- <th data-sortable="false" data-visible="false">isoDate</th> -->
-							</tr>
-						 </thead>
-					</table>
-				</form>
-
+						</tr>
+					</thead>
+				</table>
 			</div>
-
-
-		  </div>
 		</div>
-	
 	</div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="vendor/scripts/filesize.min.js"></script>
     <script src="scripts/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
     <script src="scripts/app.js"></script>

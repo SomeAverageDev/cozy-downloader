@@ -4,13 +4,11 @@ var Download = require('../models/download');
 var NotificationHelper = require('cozy-notifications-helper');
 var cozydb = require('cozydb');
 var fs = require('fs');
+var printit = require('printit');
 
 var NotificationsHelper = require('cozy-notifications-helper');
-var notificationsHelper = new NotificationsHelper('emails');
-var emailsAppRessource = {
-  app: 'emails',
-  url: '/'
-};
+var notificationsHelper = new NotificationsHelper('downloader');
+
 
 var proceedWithDownload = function (download) {
 	// https://github.com/SamDecrock/node-httpreq#download
@@ -99,7 +97,7 @@ var proceedWithDownload = function (download) {
 				var notifyRef = "notif-downloader-new", notifyMessage, notifyTitle;
 
 				if (download.status !== 'error') {
-					notifyMessage = 'Your file ['+download.filename+'] has been downloaded ! Find it on your instance';
+					notifyMessage = 'Your file ['+download.filename+'] has been downloaded';
 					notifyTitle = 'Cozy Downloader : your file is available'
 				} else {
 					notifyMessage = 'Oups, your file ['+download.filename+'] has not been downloaded.';
@@ -119,7 +117,7 @@ var proceedWithDownload = function (download) {
 					var mailOptions = {
 						from: 'myCozy <cozy@localhost>',
 						subject: notifyTitle,
-						content: notifyMessage,
+						content: notifyMessage +  ' ! Find it on your instance',
 					};
 
 					cozydb.api.sendMailToUser(mailOptions, function(err) {
@@ -269,11 +267,28 @@ router.get('/downloads/:id', function(req, res, next) {
         } else {
 			// OK
 			var redir = download.pathname;
+
+			var options = {
+				//root: __dirname + '/public/',
+				dotfiles: 'deny',
+				headers: {
+					'x-timestamp': Date.now(),
+					'x-sent': true,
+					'Content-Type': 'application/octet-stream',
+					'Content-Disposition': 'attachment; filename="' + download.filename +'"'
+				}
+			};
+
+			if (redir.search ("./") !== -1) {
+				options.root = __dirname+'/../../';
+				console.log("setting options.root = ", options.root);
+			}
+
 			//redir = redir.replace('./client','');
 			//redir = redir.replace(process.env.APPLICATION_PERSISTENT_DIRECTORY, '');
 			console.log("/downloads/:id - trying to send file ",redir);
             //res.redirect(redir);
-			res.sendFile(redir);
+			res.sendFile(redir, options);
         }
     });
 });
