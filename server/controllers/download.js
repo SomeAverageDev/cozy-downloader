@@ -4,7 +4,6 @@ var Download = require('../models/download');
 var NotificationHelper = require('cozy-notifications-helper');
 var cozydb = require('cozydb');
 var fs = require('fs');
-var printit = require('printit');
 
 var NotificationsHelper = require('cozy-notifications-helper');
 var notificationsHelper = new NotificationsHelper('downloader');

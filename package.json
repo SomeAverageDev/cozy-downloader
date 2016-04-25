@@ -1,6 +1,6 @@
 {
   "name": "cozy-downloader",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Download files from a given URL",
   "displayName": "Downloader",
   "author": "SomeAverageDev",
