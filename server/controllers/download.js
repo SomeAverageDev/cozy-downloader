@@ -1,13 +1,11 @@
 var express = require('express');
 var router = express.Router();
 var Download = require('../models/download');
-var NotificationHelper = require('cozy-notifications-helper');
+var NotificationsHelper = require('cozy-notifications-helper');
 var cozydb = require('cozydb');
 var fs = require('fs');
 
-var NotificationsHelper = require('cozy-notifications-helper');
 var notificationsHelper = new NotificationsHelper('downloader');
-
 
 var proceedWithDownload = function (download) {
 	// https://github.com/SamDecrock/node-httpreq#download
@@ -29,7 +27,6 @@ var proceedWithDownload = function (download) {
 				download.updated = new Date();
 				download.save(function (err) {});
 				console.log('ERROR:httpreq.download:progress:'+err);
-				next (err);
 			}
 			else {
 
