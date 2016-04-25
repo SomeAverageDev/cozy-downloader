@@ -102,6 +102,7 @@ function createDownloadHandler() {
 };
 
 function updateListDownloads() {
+
 	$.getJSON('downloads/list', null, function( data )
 	{
 		var crudTable = $('#crud-list-table').dataTable();
@@ -147,8 +148,10 @@ function updateListDownloads() {
 }
 
 function autoReload() {
-  updateListDownloads();
-  setTimeout(function(){autoReload();}, 20000);
+	var $crudAlert = $('#crud-alert');
+	$crudAlert.html('');
+	updateListDownloads();
+	setTimeout(function(){autoReload();}, 20000);
 }
 
 window.onload = function() {
