@@ -269,9 +269,11 @@ router.get('/downloads/:id', function(req, res, next) {
         } else {
 			// OK
 			var redir = download.pathname;
-			redir = redir.replace('./client','');
-			redir = redir.replace(process.env.APPLICATION_PERSISTENT_DIRECTORY, '');
-            res.redirect(redir);
+			//redir = redir.replace('./client','');
+			//redir = redir.replace(process.env.APPLICATION_PERSISTENT_DIRECTORY, '');
+			console.log("/downloads/:id - trying to send file ",redir);
+            //res.redirect(redir);
+			res.sendFile(redir);
         }
     });
 });
