@@ -5,6 +5,22 @@ var NotificationsHelper = require('cozy-notifications-helper');
 var cozydb = require('cozydb');
 var fs = require('fs');
 
+var CozyInstance = require('../models/cozyinstance');
+
+console.log(CozyInstance);
+
+console.log(CozyInstance.getLocale(function(err, locale) {
+      if ((err != null) || !locale) {
+        locale = 'en';
+      }
+      return null;
+    })
+);
+console.log(CozyInstance.getURL(function(err, locale) {
+      return null;
+    })
+);
+
 var notificationsHelper = new NotificationsHelper('downloader');
 
 var proceedWithDownload = function (download) {

@@ -1,7 +1,6 @@
 // Definition of the document type and basic operations
 var cozydb = require('cozydb');
 
-
 var Download = cozydb.getModel('Download', {
     // Download model
     'url': {
