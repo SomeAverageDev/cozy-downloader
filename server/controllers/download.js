@@ -7,8 +7,7 @@ var fs = require('fs');
 
 var CozyInstance = require('../models/cozyinstance');
 
-console.log(CozyInstance);
-
+/*
 console.log(CozyInstance.getLocale(function(err, locale) {
       if ((err != null) || !locale) {
         locale = 'en';
@@ -20,6 +19,8 @@ console.log(CozyInstance.getURL(function(err, locale) {
       return null;
     })
 );
+
+*/
 
 var notificationsHelper = new NotificationsHelper('downloader');
 
