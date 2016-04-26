@@ -6,6 +6,10 @@ var cozydb = require('cozydb');
 var fs = require('fs');
 
 var CozyInstance = require('../models/cozyinstance');
+var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
+if ( typeof persistentDirectory === 'undefined') {
+	persistentDirectory = __dirname+'/../../client/public/data';
+}
 
 /*
 console.log(CozyInstance.getLocale(function(err, locale) {
@@ -183,11 +187,6 @@ router.post('/downloads/', function(req, res, next) {
 				newDownload.created = new Date();
 				newDownload.status = 'submitted';
 
-				var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
-
-				if ( typeof persistentDirectory === 'undefined') {
-					persistentDirectory = './client/data';
-				}
 				newDownload.pathname = persistentDirectory+'/'+newDownload.filename;
 
 				console.log ('newDownload.pathname:'+newDownload.pathname);
@@ -279,10 +278,7 @@ router.get('/downloads/:id', function(req, res, next) {
             next(err);
         } else {
 			// OK
-			var redir = download.pathname;
-
 			var options = {
-				//root: __dirname + '/public/',
 				dotfiles: 'deny',
 				headers: {
 					'x-timestamp': Date.now(),
@@ -291,17 +287,17 @@ router.get('/downloads/:id', function(req, res, next) {
 					'Content-Disposition': 'attachment; filename="' + download.filename +'"'
 				}
 			};
-
-			if (redir.search ("./") !== -1) {
-				options.root = __dirname+'/../../';
+/*
+			if ( typeof persistentDirectory !== 'undefined') {
+				options.root = persistentDirectory;
+				console.log("setting options.root = ", options.root);
+			} else {
+				options.root = __dirname;
 				console.log("setting options.root = ", options.root);
 			}
-
-			//redir = redir.replace('./client','');
-			//redir = redir.replace(process.env.APPLICATION_PERSISTENT_DIRECTORY, '');
-			console.log("/downloads/:id - trying to send file ",redir);
-            //res.redirect(redir);
-			res.sendFile(redir, options);
+*/
+			console.log("/downloads/:id - trying to send file ", download.pathname);
+			res.sendFile(download.pathname, options);
         }
     });
 });
