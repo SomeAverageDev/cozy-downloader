@@ -129,10 +129,10 @@ function updateListDownloads() {
 					  (data[i].pourcentage>0) ? ('<div class="progress"><div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="'+data[i].pourcentage+'" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width:'+data[i].pourcentage+'%">'+data[i].pourcentage+'%</div></div>'):'-',
 					  (data[i].created) ? new Date(data[i].created).toLocaleString() : '-',
 					  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
-					  '<img src="icons/'+data[i].status+'.png" title="'+data[i].status+'" />',
+					  '<img src="app/assets/images/'+data[i].status+'.png" title="'+data[i].status+'" />',
 					  filesize(data[i].fileprogress, {spacer:''}),
 					  //data[i].notify,
-					  //'<img src="icons/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />'
+					  //'<img src="app/assets/images/delete.png" alt="delete" onClick="deleteDownloadHelper(\''+data[i]._id+'\')" />'
 					  actions
 		//					,	data[i].created
 					]
