@@ -1,6 +1,6 @@
 {
   "name": "cozy-downloader",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Download files from a given URL",
   "displayName": "Downloader",
   "author": "SomeAverageDev",
@@ -58,7 +58,7 @@
     "Send mail to user": {
       "description": "Send links by mail"
     },
-    "Cozyinstance": {
+    "CozyInstance": {
       "description": "Used to recover your language setting and your cozy's domain"
     }
   }
