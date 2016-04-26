@@ -50,7 +50,7 @@
       "description": "Use folders in your cozy"
     },
     "Notification": {
-      "description": "Send email notifications."
+      "description": "Send email and home notifications."
     },
     "Send mail from user": {
       "description": "Send links by mail"

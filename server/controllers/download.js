@@ -344,17 +344,19 @@ router.get('/downloads/delete/:id', function(req, res, next) {
             // DOC NOT FOUND
             res.sendStatus(404);
         } else {
-			if (download.pathname != null) {
-				try {
-					console.log('request for delete file:' + download.pathname);
-					fs.unlinkSync(download.pathname);
-				}
-				catch (err) {
-					console.log('file delete error:'+err);
-				}
+			var localFilename = download.pathname;
 
-			}
-			download.destroy(function (err) {});
+			download.destroy(function (err) {
+				if (localFilename != null) {
+					try {
+						fs.unlinkSync(localFilename);
+						console.log('request for delete file:' + localFilename);
+					}
+					catch (err) {
+						console.log('file delete error:'+err);
+					}
+				}
+			});
 			res.sendStatus(200);
 		}
 	});
