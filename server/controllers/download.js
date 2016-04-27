@@ -303,11 +303,14 @@ router.get('/downloads/:id', function(req, res, next) {
 					console.log("setting options.root = ", options.root);
 				}
 	*/
-				res.sendFile(download.pathname, options);
+				res.sendFile(download.pathname, options, function (err) {
+					console.log('ERROR (sendFile) : ',err);
+					res.sendStatus(404);
+				});
 			} catch (err) {
 				console.log('ERROR : file does not exists !!');
 				// file does not exist, update attributes
-				res.send(404);
+				res.sendStatus(404);
 			}
         }
     });
