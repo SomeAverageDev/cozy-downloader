@@ -154,7 +154,7 @@ var proceedWithDownload = function (download) {
 
 
 // Create a new download
-router.post('/downloads/', function(req, res, next) {
+router.post('/downloads/new/', function(req, res, next) {
 	//console.log(req.body);
 
 	if (req.body.url === '') {
@@ -278,26 +278,37 @@ router.get('/downloads/:id', function(req, res, next) {
             next(err);
         } else {
 			// OK
-			var options = {
-				dotfiles: 'deny',
-				headers: {
-					'x-timestamp': Date.now(),
-					'x-sent': true,
-					'Content-Type': 'application/octet-stream',
-					'Content-Disposition': 'attachment; filename="' + download.filename +'"'
+			console.log("/downloads/:id - trying to send file : ", download.pathname);
+			try {
+				// check file exists
+				fs.accessSync(download.pathname, fs.F_OK);
+
+				console.log('GOOD : file exists !!');
+
+				var options = {
+					dotfiles: 'deny',
+					headers: {
+						'x-timestamp': Date.now(),
+						'x-sent': true,
+						'Content-Type': 'application/octet-stream',
+						'Content-Disposition': 'attachment; filename="' + download.filename +'"'
+					}
+				};
+	/*
+				if ( typeof persistentDirectory !== 'undefined') {
+					options.root = persistentDirectory;
+					console.log("setting options.root = ", options.root);
+				} else {
+					options.root = __dirname;
+					console.log("setting options.root = ", options.root);
 				}
-			};
-/*
-			if ( typeof persistentDirectory !== 'undefined') {
-				options.root = persistentDirectory;
-				console.log("setting options.root = ", options.root);
-			} else {
-				options.root = __dirname;
-				console.log("setting options.root = ", options.root);
+	*/
+				res.sendFile(download.pathname, options);
+			} catch (err) {
+				console.log('ERROR : file does not exists !!');
+				// file does not exist, update attributes
+				res.send(404);
 			}
-*/
-			console.log("/downloads/:id - trying to send file ", download.pathname);
-			res.sendFile(download.pathname, options);
         }
     });
 });
