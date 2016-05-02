@@ -43,17 +43,22 @@ var proceedWithDownload = function (download) {
 	httpreq.download( download.url , download.pathname ,
 		function (err, progress) {
 			if (err) {
-				download.status = 'error';
-				download.statusMessage=JSON.stringify(err);
-				download.updated = new Date();
-				download.save(function (err) {});
-				console.log('ERROR:httpreq.download:progress:'+err);
+				console.log('ERROR:httpreq.download:progress:',err,progress);
+				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
+					if(err) {
+						// ERROR
+						return console.log(err);
+					} else {
+						// OK
+						return true;
+					}
+				});
 			}
 			else {
 
-				if (inProgress !== parseInt(progress.percentage)) { // && inProgress < 70
+				if (inProgress !== parseInt(progress.percentage) && progress.percentage < 90) {
 					inProgress = parseInt(progress.percentage);
-					download.updateAttributes({updated: new Date(),filesize: progress.totalsize, fileprogress: progress.currentsize}, function(err, download) {
+					download.updateAttributes({updated: new Date(),filesize: progress.totalsize, fileprogress: progress.currentsize}, function(err) {
 						if(err) {
 							// ERROR
 							return console.log(err);
@@ -68,11 +73,16 @@ var proceedWithDownload = function (download) {
 		},
 		function (err, res) {
 			if (err) {
-				console.log('ERROR:httpreq.download:res:1:'+err);
-				download.status = 'error';
-				download.updated = new Date();
-				download.statusMessage=JSON.stringify(err);
-				download.save(function (err) {});
+				console.log('ERROR:httpreq.download:res:1:',err,res);
+				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
+					if(err) {
+						// ERROR
+						return console.log(err);
+					} else {
+						// OK
+						return true;
+					}
+				});
 			}
 			else {
 				//console.log (res);
@@ -102,23 +112,36 @@ var proceedWithDownload = function (download) {
 					download.status = 'available';
 				}
 
-				download.updated = new Date();
-				download.save(function (err) {
-					if (err) {
-						console.log(err);
+				download.updateAttributes({
+						updated: new Date(),
+						filesize:download.filesize,
+						fileprogress:download.fileprogress,
+						statusMessage:download.statusMessage,
+						status:download.status
+					},
+					function(err) {
+						if(err) {
+							// ERROR
+							return console.log(err);
+						} else {
+							// OK
+							return true;
+						}
 					}
-				});
+				);
 
 				// NOTIFICATION
 				// HOME notification
-				var notifyRef = "notif-downloader-new", notifyMessage, notifyTitle;
+				var notifyRef = "notify-downloader-new", notifyMailMessage, notifyHomeMessage, notifyTitle;
 
 				if (download.status !== 'error') {
-					notifyMessage = 'Your file ['+download.filename+'] has been downloaded';
-					notifyTitle = 'Cozy Downloader : your file is available'
+					notifyMailMessage = 'Your file ['+download.filename+'], submitted within the URL [<a href="'+download.url+'">'+download.url+'</a>] has been successfully downloaded.';
+					notifyHomeMessage = 'Your file ['+download.filename+'] has been downloaded';
+					notifyTitle = 'Cozy-Downloader : your file is available'
 				} else {
-					notifyMessage = 'Oups, your file ['+download.filename+'] has not been downloaded.';
-					notifyTitle = 'Cozy Downloader : your download failed'
+					notifyMailMessage = 'Oups, your file ['+download.filename+'], submitted within the URL [<a href="'+download.url+'">'+download.url+'</a>] has not been downloaded.';
+					notifyHomeMessage = 'Oups, your file ['+download.filename+'] has not been downloaded.';
+					notifyTitle = 'Cozy-Downloader : your download failed'
 				}
 
 				notificationsHelper.createOrUpdatePersistent(notifyRef, {
@@ -126,19 +149,19 @@ var proceedWithDownload = function (download) {
 						app: 'downloader',
 						url: '/'
 					},
-					text: notifyMessage
+					text: notifyHomeMessage
 				}, console.log());
 
-				// email notification if requested
+				// EMAIL notification if requested
 				if (download.notify == true) {
 					var mailOptions = {
 						from: 'myCozy <cozy@localhost>',
 						subject: notifyTitle,
-						content: notifyMessage +  ' ! Find it on your instance',
+						content: notifyMailMessage +  ' ! Find it on your instance',
 					};
 
 					cozydb.api.sendMailToUser(mailOptions, function(err) {
-						console.log('sent update mail to cozy user');
+						console.log('sent mail notification to cozy user');
 						if (err) {
 							console.log(err);
 						}
@@ -173,8 +196,8 @@ router.post('/downloads/new/', function(req, res, next) {
 				//console.log ('SAME URL FOUND:',foundDownload);
 				return res.status(500).send('this URL is already known !');
 			} else {
-				console.log ('NO URL FOUND:');
-				// NOT FOUND > continue to download
+				//console.log ('OK, this is a new URL');
+				// new url > continue to download
 				var urlParsing = require('url');
 				var filename = urlParsing.parse(req.body.url).pathname;
 				filename = filename.substring(filename.lastIndexOf('/')+1);
@@ -192,6 +215,7 @@ router.post('/downloads/new/', function(req, res, next) {
 				console.log ('newDownload.pathname:'+newDownload.pathname);
 				console.log ('newDownload.filename:'+newDownload.filename);
 
+				// saving the object in DB
 				Download.create(newDownload, function(err, download) {
 					if(err) {
 						// ERROR
@@ -264,6 +288,7 @@ router.get('/downloads/list', function(req, res, next) {
 				downloads[i].save(function (err) {});
 
 			}
+
 			//console.log(downloads);
             res.status(200).json(downloads);
         }
