@@ -70,7 +70,10 @@ function initListDownloads() {
         "bInfo": false,
 		"retrieve": true,
 		"bJQueryUI": true,
-		"sAjaxSource": 'downloads/list'
+		"sAjaxSource": 'downloads/list',
+		"language": {
+			"emptyTable": "You have not downloaded anything yet !"
+			}
 		}
 	);
 	return false;
