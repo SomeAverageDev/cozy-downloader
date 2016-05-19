@@ -97,7 +97,10 @@ var proceedWithDownload = function (download) {
 					}
 				} else {
 					// download OK
-					(download.filesize === 0) ? download.filesize = res.headers['content-length'] : '';
+					(download.filesize === 0) ? download.filesize = res.headers['content-length'] : function () {
+						var stats = fs.statSync(downloads[i].pathname);
+						return stats['size'];
+					};
 					download.fileprogress = res.headers['content-length'];
 					download.statusMessage=JSON.stringify(res);
 					download.status = 'available';
@@ -275,6 +278,9 @@ router.get('/downloads/list', function(req, res, next) {
 						// file is present, checking size
 						var stats = fs.statSync(downloads[i].pathname);
 						downloads[i].fileprogress = stats['size'];
+						if (downloads[i].filesize === 0 && stats['size'] > 0) {
+							downloads[i].filesize = stats['size'];
+						}
 						downloads[i].status = 'error';
 						if (downloads[i].filesize > 0 && downloads[i].fileprogress === downloads[i].filesize) {
 							downloads[i].status = 'available';
