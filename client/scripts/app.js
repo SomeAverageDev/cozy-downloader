@@ -1,4 +1,5 @@
 // refresh table from http://www.meadow.se/wordpress/refreshing-data-in-jquery-datatables/
+const autoReloadTimer = 10000;
 
 function stringShortener (str, maxSize) {
 	if (typeof maxSize === 'undefined') {
@@ -42,7 +43,7 @@ function deleteDownloadHelper (id) {
 	$crudAlert.html('Delete request submitted...');
 
 	$.ajax({
-		'method': 'GET',
+		'method': 'DELETE',
 		'url': 'downloads/delete/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
@@ -85,17 +86,27 @@ function createDownloadHandler() {
     var $button = $('#new-url-form button');
 
     function onSubmit() {
-		var $crudAlert = $('#crud-alert');
 
-		var formData = {};
+		var $crudAlert = $('#crud-alert');
 		$crudAlert.html('Download request submitted...');
 
+		var formData = {
+			'notify': false
+		};
+
+		// input validation
         if ($url.val() && $url.val().length > 0) {
             formData.url = $url.val();
+        } else {
+			// empty URL, no need to submit the form
+			return false;
         }
+
         if ($notify[0].checked) {
             formData.notify = true;
         }
+
+		// data json formating
 		formData = JSON.stringify(formData, null, 2);
 
         $.ajax({
@@ -141,7 +152,7 @@ function updateListDownloads() {
 
 				if (data[i].status === 'available') {
 					actions += '<button type="button" class="btn btn-success btn-sm" onClick="getDownloadHelper(\''+data[i]._id+'\')">Retrieve</button>&nbsp;';
-				} else if (data[i].status !== 'submitted') {
+				} else if (data[i].status !== 'pending') {
 					actions += '<button type="button" class="btn btn-info btn-sm" onClick="retryDownloadHelper(\''+data[i]._id+'\')">Retry</button>';
 				}
 
@@ -169,10 +180,10 @@ function updateListDownloads() {
 };
 
 function autoReload() {
-	var $crudAlert = $('#crud-alert');
-	$crudAlert.html('');
+	//var $crudAlert = $('#crud-alert');
+	//$crudAlert.html('');
 	updateListDownloads();
-	setTimeout(function(){autoReload();}, 20000);
+	setTimeout(function(){autoReload();}, autoReloadTimer);
 	return false;
 };
 
@@ -186,6 +197,6 @@ window.onload = function() {
     initListDownloads();
 	updateListDownloads();
 	// auto reload table
-	setTimeout(function(){autoReload();}, 20000);
+	setTimeout(function(){autoReload();}, autoReloadTimer);
 	return false;
 };

@@ -1,15 +1,13 @@
+var bodyParser = require('body-parser');
+var cozydb = require('cozydb');
 
 var express = require('express');
 var app = express();
-var bodyParser = require('body-parser');
-var morgan = require('morgan');
-var cozydb = require('cozydb');
 
 /*
     Configuration section.
 */
 app.use(bodyParser.json());
-app.use(morgan('dev'));
 app.use(express.static('client'));
 
 
