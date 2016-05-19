@@ -35,7 +35,7 @@ var proceedWithDownload = function (download) {
 		function (err, progress) {
 			if (err) {
 				console.log('ERROR:httpreq.download:progress:',err,progress);
-				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
+/*				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
 						return console.log(err);
@@ -43,7 +43,7 @@ var proceedWithDownload = function (download) {
 						// OK
 						return true;
 					}
-				});
+				});*/
 			}
 			else {
 
