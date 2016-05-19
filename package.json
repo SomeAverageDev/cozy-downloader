@@ -48,6 +48,9 @@
     },
     "CozyInstance": {
       "description": "Used to recover your language setting and your cozy's domain"
+    },
+     "User": {
+      "description": "The user's email and name."
     }
   }
 }
