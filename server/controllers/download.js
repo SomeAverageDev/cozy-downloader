@@ -434,13 +434,17 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 						mime: download.mime
 					};
 
-					return File.createNewFile(fileData, download.pathname, function(err) {
-						console.log("File.createNewFile");
+					var fileCreated = File.createNewFile(fileData, download.pathname, function(err) {
+						console.log("File.createNewFile:", fileData);
 						if(err) {
 							// ERROR
 							console.log("File.createNewFile:err:",err);
 						} else {
 							console.log ("download '",download.pathname,"' stored in files app");
+						}
+					});
+
+					if (fileCreated === true) {
 							// destroy the download and local file
 							download.destroy(function (err) {
 								if (download.pathname != null) {
@@ -455,8 +459,7 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 									}
 								}
 							});
-						}
-					});
+					}
 				}
 			});
         }
