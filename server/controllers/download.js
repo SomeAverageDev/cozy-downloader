@@ -401,7 +401,7 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
         if(err) {
 			// ERROR
 	 		console.log('requested download not found in database, id:',err);
-			next(err);
+			res.sendStatus(500);
         } else if(!download) {
             // DOC NOT FOUND
 			console.log('requested download not found in database, id:',req.params.id);
@@ -412,7 +412,7 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 
 			var File = require('../models/file');
 
-			return File.isPresent(filesFolderName+'/'+download.filename, function(err, isFilePresent) {
+			File.isPresent(filesFolderName+'/'+download.filename, function(err, isFilePresent) {
 				console.log("File.isPresent:isFilePresent:", isFilePresent);
 				if (err) {
 					console.log("File.isPresent:err:",err);
@@ -441,27 +441,26 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 							console.log("File.createNewFile:err:", err);
 						} else {
 							console.log ("File.createNewFile:OK:download '",download.pathname,"' stored in files app");
+							// destroy the download and local file
+							download.destroy(function (err) {
+								if (download.pathname != null) {
+									try {
+										fs.unlinkSync(download.pathname);
+										console.log('download.destroy:OK:', download.pathname);
+										res.sendStatus(200);
+									}
+									catch (err) {
+										console.log("download.destroy:error:", err);
+										res.sendStatus(500);
+									}
+								}
+							});
 						}
 					});
 
-					// destroy the download and local file
-					download.destroy(function (err) {
-						if (download.pathname != null) {
-							try {
-								fs.unlinkSync(download.pathname);
-								console.log('download.destroy:OK:', download.pathname);
-								res.sendStatus(200);
-							}
-							catch (err) {
-								console.log("download.destroy:error:", err);
-								res.sendStatus(500);
-							}
-						}
-					});
 				}
 			});
         }
-
     });
 });
 
