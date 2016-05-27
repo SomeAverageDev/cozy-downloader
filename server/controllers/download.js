@@ -422,7 +422,7 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 
 			var File = require('../models/file');
 
-			File.isPresent(filesFolderName+download.filename, function(err, isFilePresent) {
+			return File.isPresent(filesFolderName+'/'+download.filename, function(err, isFilePresent) {
 				console.log("File.isPresent:isFilePresent:",isFilePresent);
 				if (err) {
 					console.log("File.isPresent:err:",err);
@@ -444,7 +444,8 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 						mime: download.mime
 					};
 
-					File.createNewFile(fileData, download.pathname, function(err) {
+					return File.createNewFile(fileData, download.pathname, function(err) {
+						console.log("File.createNewFile");
 						if(err) {
 							// ERROR
 							console.log("File.createNewFile:err:",err);
