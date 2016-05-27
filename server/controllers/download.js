@@ -16,9 +16,11 @@ if ( typeof persistentDirectory === 'undefined') {
 	persistentDirectory = __dirname+'/../../client/public/data';
 }
 
+
 CozyInstance.first(function (err, instance) {
-	console.log(instance);
+	console.log("domain:",instance.domain);
 });
+
 
 var notificationsHelper = new NotificationsHelper('downloader');
 
