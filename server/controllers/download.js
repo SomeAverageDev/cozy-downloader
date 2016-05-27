@@ -422,7 +422,7 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 
 			var File = require('../models/file');
 
-			File.isPresent('/'+download.filename, function(err, isFilePresent) {
+			File.isPresent(filesFolderName+download.filename, function(err, isFilePresent) {
 				console.log("File.isPresent:isFilePresent:",isFilePresent);
 				if (err) {
 					console.log("File.isPresent:err:",err);
@@ -456,17 +456,16 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 									try {
 										fs.unlinkSync(download.pathname);
 										console.log('request for delete file:' + download.pathname);
+										res.sendStatus(200);
 									}
 									catch (err) {
 										console.log('file delete error:'+err);
+										res.sendStatus(500);
 									}
 								}
 							});
 						}
 					});
-
-					res.sendStatus(200);
-
 				}
 			});
         }
