@@ -158,6 +158,8 @@ function createDownloadHandler() {
 };
 
 function updateListDownloads() {
+	var $crudAlert = $('#crud-alert');
+	var globalPourcentage = 0;
 
 	$.getJSON('downloads/list', null, function( data )
 	{
@@ -169,6 +171,9 @@ function updateListDownloads() {
 			for (var i=0; i<data.length; i++)
 			{
 				data[i].pourcentage = parseInt(data[i].fileprogress/data[i].filesize*100);
+				if (data[i].pourcentage > globalPourcentage) {
+					globalPourcentage = data[i].pourcentage;
+				}
 				(isNaN(data[i].pourcentage)) ? (data[i].pourcentage = 0): '';
 
 				var actions = '';
@@ -194,6 +199,12 @@ function updateListDownloads() {
 		//					,	data[i].created
 					]
 				);
+			}
+
+			if (globalPourcentage === 100) {
+				$crudAlert.html('All downloads available !');
+			} else if (globalPourcentage > 0) {
+				$crudAlert.html('Download in progress !');
 			}
 
 			oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
