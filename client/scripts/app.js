@@ -59,8 +59,31 @@ function deleteDownloadHelper (id) {
 	return false;
 };
 
-function getDownloadHelper (id) {
+function retrieveDownloadHelper (id) {
 	window.location = 'downloads/'+id;
+	return false;
+};
+
+function storeToFileDownloadHelper (id) {
+    var $crudAlert = $('#crud-alert');
+	$crudAlert.html('Store in File request submitted...');
+
+	$.ajax({
+		'method': 'PUT',
+		'url': 'downloads/tofile/'+id,
+		'complete': function(xhr, textStatus) {
+			//console.log(xhr);
+			if (xhr.status == 206) {
+				$crudAlert.html('This download is already stored in Files !');
+			} else if (xhr.status !== 200) {
+				$crudAlert.html('Store in File app request error...');
+			} else {
+				$crudAlert.html('Store in File app request successful !');
+			}
+			setTimeout(function(){updateListDownloads();}, 300);
+			return true;
+		}
+	});
 	return false;
 };
 
@@ -148,10 +171,11 @@ function updateListDownloads() {
 				data[i].pourcentage = parseInt(data[i].fileprogress/data[i].filesize*100);
 				(isNaN(data[i].pourcentage)) ? (data[i].pourcentage = 0): '';
 
-				var actions = '<button type="button" class="btn btn-danger btn-sm" onClick="deleteDownloadHelper(\''+data[i]._id+'\')">Delete</button>&nbsp;';
-
+				var actions = '';
+				actions += '<button type="button" class="btn btn-danger btn-sm" onClick="deleteDownloadHelper(\''+data[i]._id+'\')">Delete</button>&nbsp;';
 				if (data[i].status === 'available') {
-					actions += '<button type="button" class="btn btn-success btn-sm" onClick="getDownloadHelper(\''+data[i]._id+'\')">Retrieve</button>&nbsp;';
+					actions += '<button type="button" class="btn btn-success btn-sm" onClick="retrieveDownloadHelper(\''+data[i]._id+'\')">Retrieve</button>&nbsp;';
+					actions += '<button type="button" class="btn btn-success btn-sm" onClick="storeToFileDownloadHelper(\''+data[i]._id+'\')">Move to Files</button>&nbsp;';
 				} else if (data[i].status !== 'pending') {
 					actions += '<button type="button" class="btn btn-info btn-sm" onClick="retryDownloadHelper(\''+data[i]._id+'\')">Retry</button>';
 				}
@@ -160,8 +184,8 @@ function updateListDownloads() {
 					[ '<a target="_blank" href="'+data[i].url+'">'+stringShortener(data[i].url)+'</a>',
 		//						  (data[i].status == 'available') ? '<a href="downloads/'+data[i]._id+'">'+data[i].filename.substring(0, 50)+'</a>' : '-',
 					  (data[i].pourcentage>0) ? ('<div class="progress"><div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="'+ data[i].pourcentage+ '" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width:'+data[i].pourcentage+'%">'+data[i].pourcentage+'%</div></div>'):'-',
-					  (data[i].created) ? new Date(data[i].created).toLocaleString() : '-',
-					  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
+		//			  (data[i].created) ? new Date(data[i].created).toLocaleString() : '-',
+		//			  (data[i].updated) ? new Date(data[i].updated).toLocaleString() : '-',
 					  '<img src="app/assets/images/'+data[i].status+'.png" title="'+data[i].status+'" />',
 					  (data[i].fileprogress>0) ? filesize(data[i].fileprogress, {spacer:''}):'-',
 					  //data[i].notify,
@@ -187,6 +211,15 @@ function autoReload() {
 	return false;
 };
 
+function initFilesLink () {
+    var $link = $('#open-files');
+
+	$.getJSON('downloads/folder', null, function( data ) {
+		$link.attr("href", "/#apps/files/#folders/"+data[0]._id);
+	});
+	return false;
+}
+
 window.onload = function() {
 	$("form").on('submit', function (e) {
 		// remove default submit event
@@ -195,6 +228,7 @@ window.onload = function() {
 
     createDownloadHandler();
     initListDownloads();
+	initFilesLink();
 	updateListDownloads();
 	// auto reload table
 	setTimeout(function(){autoReload();}, autoReloadTimer);

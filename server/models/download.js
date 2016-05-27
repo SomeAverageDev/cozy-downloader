@@ -27,6 +27,10 @@ var Download = cozydb.getModel('Download', {
         'type': String,
         'default': ''
     },
+    'mime': {
+        'type': String,
+        'default': ''
+    },
     'fileId': {
         'type': String,
         'default': ''
