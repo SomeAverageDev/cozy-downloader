@@ -21,6 +21,25 @@ CozyInstance.first(function (err, instance) {
 	console.log("domain:",instance.domain);
 });
 
+// CREATE FOLDER IF NEEDED
+Folder.isPresent ( filesFolderName , function(err, isFolderPresent) {
+	if (err) {
+		console.log("Folder.isPresent:err:",err);
+	} else if (isFolderPresent) {
+		console.log ("folder in already present in Folders");
+	} else {
+		Folder.createNewFolder ( {path: '', name: filesFolderName.substring(1) }, function(err) {
+			if(err) {
+				// ERROR
+				console.log("Folder.createNewFolder:err:",err);
+			} else {
+				console.log ("Folder created (in Files app) :", filesFolderName);
+			}
+		});
+	}
+});
+
+
 
 var notificationsHelper = new NotificationsHelper('downloader');
 
@@ -410,24 +429,6 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 					res.sendStatus(206);
 				} else {
 
-					// CREATE FOLDER IF NEEDED
-					Folder.isPresent ( filesFolderName , function(err, isFolderPresent) {
-						if (err) {
-							console.log("Folder.isPresent:err:",err);
-						} else if (isFolderPresent) {
-							console.log ("folder in already present in Folders");
-						} else {
-							Folder.createNewFolder ( {path: '', name: filesFolderName.substring(1) }, function(err) {
-								if(err) {
-									// ERROR
-									console.log("Folder.createNewFolder:err:",err);
-								} else {
-									console.log ("Folder created");
-								}
-							});
-						}
-					});
-
 					// SEND DOWNLOAD TO FILE APP
 					var now = new Date();
 					var fileData = {
@@ -462,6 +463,7 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 					});
 
 					res.sendStatus(200);
+
 				}
 			});
         }
