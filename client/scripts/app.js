@@ -18,8 +18,7 @@ function stringShortener (str, maxSize) {
 };
 
 function retryDownloadHelper(id) {
-    var $crudAlert = $('#crud-alert');
-	$crudAlert.html('Retry request submitted...');
+	updateMessage('Retry request submitted...');
 
 	$.ajax({
 		'method': 'GET',
@@ -27,9 +26,9 @@ function retryDownloadHelper(id) {
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
 			if (xhr.status !== 200) {
-				$crudAlert.html('Retry request error');
+				updateMessage('Retry request error');
 			} else {
-				$crudAlert.html('Retry request successful !');
+				updateMessage('Retry request successful !');
 			}
 			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
@@ -39,8 +38,7 @@ function retryDownloadHelper(id) {
 };
 
 function deleteDownloadHelper (id) {
-    var $crudAlert = $('#crud-alert');
-	$crudAlert.html('Delete request submitted...');
+	updateMessage('Delete request submitted...');
 
 	$.ajax({
 		'method': 'DELETE',
@@ -48,9 +46,9 @@ function deleteDownloadHelper (id) {
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
 			if (xhr.status !== 200) {
-				$crudAlert.html('Delete request error...');
+				updateMessage('Delete request error...');
 			} else {
-				$crudAlert.html('Delete request successful !');
+				updateMessage('Delete request successful !');
 			}
 			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
@@ -65,8 +63,7 @@ function retrieveDownloadHelper (id) {
 };
 
 function storeToFileDownloadHelper (id) {
-    var $crudAlert = $('#crud-alert');
-	$crudAlert.html('Store in File request submitted...');
+	updateMessage('Store in File request submitted...');
 
 	$.ajax({
 		'method': 'PUT',
@@ -74,11 +71,11 @@ function storeToFileDownloadHelper (id) {
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
 			if (xhr.status == 206) {
-				$crudAlert.html('This download is already stored in Files !');
+				updateMessage('This download is already stored in Files !');
 			} else if (xhr.status !== 200) {
-				$crudAlert.html('Store in File app request error...');
+				updateMessage('Store in File app request error...');
 			} else {
-				$crudAlert.html('Store in File app request successful !');
+				updateMessage('Store in File app request successful !');
 			}
 			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
@@ -110,8 +107,7 @@ function createDownloadHandler() {
 
     function onSubmit() {
 
-		var $crudAlert = $('#crud-alert');
-		$crudAlert.html('Download request submitted...');
+		updateMessage('Download request submitted...');
 
 		var formData = {
 			'notify': false
@@ -141,11 +137,11 @@ function createDownloadHandler() {
             },
 			'complete': function(xhr, textStatus) {
 				if (xhr.status !== 200) {
-					$crudAlert.html('Download request error : '+xhr.responseText);
+					updateMessage('Download request error : '+xhr.responseText);
                 } else {
-					$crudAlert.html('Download request successful !');
+					updateMessage('Download request successful !');
                 }
-				setTimeout(function(){updateListDownloads();}, 300);
+				setTimeout(function(){updateListDownloads();}, 500);
 			}
         });
 
@@ -158,8 +154,7 @@ function createDownloadHandler() {
 };
 
 function updateListDownloads() {
-	var $crudAlert = $('#crud-alert');
-	var globalPourcentage = 0;
+	var globalPourcentage = 100;
 
 	$.getJSON('downloads/list', null, function( data )
 	{
@@ -171,7 +166,7 @@ function updateListDownloads() {
 			for (var i=0; i<data.length; i++)
 			{
 				data[i].pourcentage = parseInt(data[i].fileprogress/data[i].filesize*100);
-				if (data[i].pourcentage > globalPourcentage) {
+				if (globalPourcentage > data[i].pourcentage) {
 					globalPourcentage = data[i].pourcentage;
 				}
 				(isNaN(data[i].pourcentage)) ? (data[i].pourcentage = 0): '';
@@ -200,23 +195,20 @@ function updateListDownloads() {
 					]
 				);
 			}
-/*
-			if (globalPourcentage === 100) {
-				$crudAlert.html('All downloads available !');
-			} else if (globalPourcentage > 0) {
-				$crudAlert.html('Download in progress !');
-			}
-*/
+
 			oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
 			crudTable.fnDraw();
+
+			if (globalPourcentage < 100) {
+				setTimeout(function(){updateListDownloads();}, 2000);
+			}
+
 		}
 	});
 	return false;
 };
 
 function autoReload() {
-	//var $crudAlert = $('#crud-alert');
-	//$crudAlert.html('');
 	updateListDownloads();
 	setTimeout(function(){autoReload();}, autoReloadTimer);
 	return false;
@@ -226,9 +218,21 @@ function initFilesLink () {
     var $link = $('#open-files');
 
 	$.getJSON('downloads/folder', null, function( data ) {
-		$link.attr("href", "/#apps/files/#folders/"+data[0]._id);
+		$link.attr("href", "/apps/files/#folders/"+data[0]._id);
 	});
 	return false;
+}
+
+function updateMessage (message) {
+	var $crudAlert = $('#crud-alert');
+	$crudAlert.html(message);
+	$crudAlert.show();
+	setTimeout(function(){hideMessage();}, 10000);
+}
+
+function hideMessage () {
+	var $crudAlert = $('#crud-alert');
+	$crudAlert.hide();
 }
 
 window.onload = function() {

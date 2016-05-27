@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var NotificationsHelper = require('cozy-notifications-helper');
 var cozydb = require('cozydb');
 var fs = require('fs');
 
@@ -9,7 +8,11 @@ var User = require('../models/user');
 var CozyInstance = require('../models/cozyinstance');
 var Folder = require('../models/folder');
 
-var filesFolderName = '/Downloads';
+// HOME Notification Helper
+var NotificationsHelper = require('cozy-notifications-helper');
+var notificationsHelper = new NotificationsHelper('downloader');
+
+// COZY domain
 var cozyDomain = '';
 
 var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
@@ -17,13 +20,14 @@ if ( typeof persistentDirectory === 'undefined') {
 	persistentDirectory = __dirname+'/../../client/public/data';
 }
 
-
 CozyInstance.first(function (err, instance) {
 	console.log("domain:",instance);
 	cozyDomain = instance.domain;
 });
 
-var notificationsHelper = new NotificationsHelper('downloader');
+// FILES and FOLDERS apps options
+var filesFolderName = '/Downloads';
+var defaultFileTag = 'Downloads';
 
 // CREATE FOLDER IF NEEDED
 Folder.isPresent ( filesFolderName , function(err, isFolderPresent) {
@@ -43,16 +47,15 @@ Folder.isPresent ( filesFolderName , function(err, isFolderPresent) {
 	}
 });
 
-
-
-
 var proceedWithDownload = function (download) {
 	// https://github.com/SamDecrock/node-httpreq#download
 
 	console.log("proceedWithDownload:START:", download.url);
 
 	var httpreq = require('httpreq');
-	var inProgress=0;
+
+	var currentPourcentage = 0;
+	var newPourcentage = 0;
 
 	download.fileprogress = 0;
 	download.filesize = 0;
@@ -65,7 +68,7 @@ var proceedWithDownload = function (download) {
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
-						return console.log("ERROR:httpreq.download:progress:download.updateAttributes",err);
+						return console.log("ERROR:httpreq.download:progress:download.updateAttributes", err);
 					} else {
 						// OK
 						return true;
@@ -73,18 +76,21 @@ var proceedWithDownload = function (download) {
 				});
 			}
 			else {
-
-				if (inProgress !== parseInt(progress.percentage) && parseInt(progress.percentage) < 90) {
-					inProgress = parseInt(progress.percentage);
-					download.updateAttributes({status: download.status, updated: new Date(),filesize: progress.totalsize, fileprogress: progress.currentsize}, function(err) {
-						if(err) {
-							// ERROR
-							return console.log("ERROR:httpreq.download:progress:inProgress:download.updateAttributes",err);
-						} else {
-							// OK
-							return true;
-						}
-					});
+				newPourcentage = (parseInt(progress.percentage) - (parseInt(progress.percentage) % 5));
+				if (newPourcentage !== currentPourcentage && newPourcentage < 90) {
+					console.log("httpreq.download:inProgress:", download.filename, ", pourcentage:", newPourcentage);
+					currentPourcentage = newPourcentage;
+					if (download.status === 'pending') {
+						download.updateAttributes({ updated: new Date(), status: download.status, filesize: progress.totalsize, fileprogress: progress.currentsize}, function(err) {
+							if(err) {
+								// ERROR
+								return console.log("ERROR:httpreq.download:progress:inProgress:download.updateAttributes",err);
+							} else {
+								// OK
+								return true;
+							}
+						});
+					}
 				}
 			}
 			//console.log(progress);
@@ -92,6 +98,7 @@ var proceedWithDownload = function (download) {
 		function (err, res) {
 			if (err) {
 				console.log('ERROR:httpreq.download:finished:res:1:',err,res);
+/*
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
@@ -101,6 +108,7 @@ var proceedWithDownload = function (download) {
 						return true;
 					}
 				});
+*/
 			}
 			else {
 				//console.log (res);
@@ -123,7 +131,7 @@ var proceedWithDownload = function (download) {
 						console.log('ERROR:httpreq.download:finished:fs.unlinkSync:err:', err);
 					}
 				} else {
-					console.log('OK:httpreq.download:finished:OK:', res);
+					//console.log('OK:httpreq.download:finished:OK:', res);
 					// download OK
 					(download.filesize === 0) ? download.filesize = res.headers['content-length'] : function () {
 						var stats = fs.statSync(downloads[i].pathname);
@@ -150,11 +158,22 @@ var proceedWithDownload = function (download) {
 							return console.log("ERROR:httpreq.download:finished:download.updateAttributes",err);
 						} else {
 							// OK
-							console.log('download.updateAttributes:OK:',download);
+							//console.log('download.updateAttributes:END:',download);
 							return true;
 						}
 					}
 				);
+
+				download.save(function(err) {
+						if(err) {
+							// ERROR
+							return console.log("ERROR:httpreq.download:finished:download.updateAttributes",err);
+						} else {
+							// OK
+							//console.log('download.updateAttributes:END:',download);
+							return true;
+						}
+					});
 
 				// HOME notification
 				var notifyMailMessage, notifyHomeMessage, notifyTitle;
@@ -203,8 +222,8 @@ var proceedWithDownload = function (download) {
 						}
 					});
 
-
 				}
+				console.log("proceedWithDownload:END:", download.url);
 			}
 //					console.log(res);
 		}
@@ -291,7 +310,7 @@ router.get('/downloads/list', function(req, res, next) {
 
 					var lastUpdate = (new Date()-downloads[i].updated);
 
-					console.log('checking last update='+lastUpdate);
+					//console.log('checking last update='+lastUpdate);
 
 					// if last update is > 120s, it could be on error
 					if (lastUpdate > 120000) {
@@ -431,9 +450,10 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 						creationDate: now.toISOString(),
 						lastModification: now.toISOString(),
 						"class": 'document',
+						tags: [defaultFileTag],
 						mime: download.mime
 					};
-					console.log("File.createNewFile:fileData:", fileData);
+					//console.log("File.createNewFile:fileData:", fileData);
 
 					File.createNewFile(fileData, download.pathname, function(err) {
 						if(err) {
