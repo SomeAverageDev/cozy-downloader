@@ -148,9 +148,9 @@ var proceedWithDownload = function (download) {
 				var notifyMailMessage, notifyHomeMessage, notifyTitle;
 
 				if (download.status !== 'error') {
-					notifyMailMessage = 'Your file [<a href="downloads/'+download._id+'">'+download.filename+'</a>] has been downloaded successfully.';
+					notifyMailMessage = 'Your file [<a href="https://'+instance.domain+'/#apps/downloader/">'+download.filename+'</a>] has been downloaded successfully.';
 					notifyMailMessage += '<br />It was submitted within the URL [<a href="'+download.url+'">'+download.url+'</a>].';
-					notifyMailMessage += '<br /><br />Find it on your cozy';
+					notifyMailMessage += '<br /><br />Find it on <a href="https://'+instance.domain+'/your cozy</a> !';
 					notifyHomeMessage = 'Your file ['+download.filename+'] has been downloaded';
 					notifyTitle = 'Cozy-Downloader : your file is available !';
 				} else {
