@@ -70,7 +70,7 @@ module.exports = File = (function(superClass) {
 		} else {
 		  attachBinary(newFile);
 		  console.log("File.createNewFile:File.create:goto:attachBinary:OK");
-		  return callback(void 0));
+		  return callback(void 0);
 		}
 	  });
 	};
