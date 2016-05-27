@@ -435,7 +435,7 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 					};
 					console.log("File.createNewFile:fileData:", fileData);
 
-					var fileCreated = File.createNewFile(fileData, download.pathname, function(err) {
+					File.createNewFile(fileData, download.pathname, function(err) {
 						if(err) {
 							// ERROR
 							console.log("File.createNewFile:err:", err);
@@ -443,24 +443,21 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 							console.log ("File.createNewFile:OK:download '",download.pathname,"' stored in files app");
 						}
 					});
-					console.log("File.createNewFile:fileCreated:", fileCreated);
 
-					if (fileCreated === true) {
-							// destroy the download and local file
-							download.destroy(function (err) {
-								if (download.pathname != null) {
-									try {
-										fs.unlinkSync(download.pathname);
-										console.log('download.destroy:OK:', download.pathname);
-										res.sendStatus(200);
-									}
-									catch (err) {
-										console.log("download.destroy:error:", err);
-										res.sendStatus(500);
-									}
-								}
-							});
-					}
+					// destroy the download and local file
+					download.destroy(function (err) {
+						if (download.pathname != null) {
+							try {
+								fs.unlinkSync(download.pathname);
+								console.log('download.destroy:OK:', download.pathname);
+								res.sendStatus(200);
+							}
+							catch (err) {
+								console.log("download.destroy:error:", err);
+								res.sendStatus(500);
+							}
+						}
+					});
 				}
 			});
         }
