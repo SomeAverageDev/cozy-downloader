@@ -46,20 +46,21 @@ module.exports = File = (function(superClass) {
 
 	  attachBinary = function(newFile) {
 		file.path = data.name;
-	    console.log("File.createNewFile:File.create:attachBinary");
+	    console.log("File.createNewFile:attachBinary");
 		return newFile.attachBinary(file, {
 		  "name": "file"
 		}, function(err, res, body) {
 		  if (err) {
-		    console.log("File.createNewFile:File.create:attachBinary:err", err);
+		    console.log("File.createNewFile:attachBinary:err", err);
 			return newFile.destroy(function(error) {
 			  return callback("Error attaching binary: "+ err);
 			});
 		  } else {
-		    console.log("File.createNewFile:File.create:attachBinary:OK");
+		    console.log("File.createNewFile:attachBinary:OK");
 			return true;
 		  }
 		});
+		return true;
 	  };
 
 	  return File.create(data, function(err, newFile) {
@@ -67,9 +68,8 @@ module.exports = File = (function(superClass) {
 		  console.log("File.createNewFile:File.create:err", err);
 		  return callback(new Error("File.createNewFile:File.create:goto:attachBinary:Server error while creating file:"+ err));
 		} else {
-		  console.log("File.createNewFile:File.create:goto:attachBinary");
-		  attachBinary(newFile);
-		  return true;
+		  console.log("File.createNewFile:File.create:goto:attachBinary:OK");
+		  return attachBinary(newFile);
 		}
 	  });
 	};
