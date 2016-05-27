@@ -433,7 +433,7 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 						"class": 'document',
 						mime: download.mime
 					};
-					console.log("File.createNewFile:", fileData);
+					console.log("File.createNewFile:fileData:", fileData);
 
 					var fileCreated = File.createNewFile(fileData, download.pathname, function(err) {
 						if(err) {
