@@ -7,9 +7,8 @@
 }
 
 #crud-alert {
-	color: #ffff99;
-	margin-top: 10px;
 	font-size: 18px;
+	text-align: center;
 }
 
 #crud-list-table_wrapper th {

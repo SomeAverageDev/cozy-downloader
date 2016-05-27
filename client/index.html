@@ -25,14 +25,18 @@
 	  <div class="modal-dialog">
 
 		<form class="form-inline" id="new-url-form" role="form">
-			<!-- Modal content-->
+			
 			<div class="modal-content">
-			  <div class="modal-header">
+				<!-- MODAL CONTENT-->
+				<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal">&times;</button>
 				<h4 class="modal-title">Download a new file from URL</h4>
-			  </div>
-			  <!-- Modal body -->
+				</div>
+				
+			  
 			  <div class="modal-body">
+
+				<!-- MODAL BODY -->
 				<div class="container" id="crud-create-container">
 					<div class="input-group">
 						<span class="input-group-addon" id="basic-addon1">URL :</span>
@@ -45,15 +49,22 @@
 						</label>
 					  </div>
 					</div>
-
 				</div>
+				<!-- END MODAL BODY -->
+
 			  </div>
-			  <!-- Modal footer -->
+
+			 
 			  <div class="modal-footer">
+			    <!-- MODAL FOOTER -->
 			    <a href="#" class="btn btn-primary" data-dismiss="modal">Cancel</a>
 				<button class="btn btn-primary btn-success" title="Submit download" data-dismiss="modal">Download</button>
+				<!-- END MODAL FOOTER -->
 			  </div>
+
+			  <!-- END MODAL CONTENT-->
 			</div>
+
 		</form>
 
 	  </div>
@@ -67,33 +78,35 @@
 					<!-- Trigger the modal with a button -->
 					<div class="row">
 						<div class="col-md-1 text-center"><img src="app/assets/icons/main_icon.png" width="40" /></div>
-						<div class="col-md-2"><h4>AVAILABLE FILES</h4></div>
-						<div class="col-md-7 text-center">
-							<div id="crud-alert" class="center-block"></div>
-						</div>
-						<div class="col-md-2 text-right" >
+						<div class="col-md-7"><h4>AVAILABLE FILES</h4></div>
+						<div class="col-md-4 text-right" >
+							<a href="/#apps/files/" id="open-files" type="button" class="btn btn-info" >FILES</a>
 							<button id="submit-new-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal">NEW DOWNLOAD</button>
 						</div>
 					</div>
 				</div>
-				<div class="panel-body"></div>
+				<div class="panel-body">
 
-				<table id="crud-list-table" class="table display table-bordered">
-					<thead>
-						<tr>
-							<th class="sorting_asc">URL</th>
-							<!-- <th data-sortable="true">Filename</th> -->
-							<th style="width:120px" data-sortable="true">Progress</th>
-							<th style="width:50px" data-sortable="true">Created</th>
-							<th style="width:50px" data-sortable="true">Updated</th>
-							<th style="width:50px" data-sortable="true">Status</th>
-							<th style="width:50px" data-sortable="true">Size</th>
-							<!-- <th data-sortable="true">Notify</th> -->
-							<th style="width:200px" data-sortable="false">Actions</th>
-							<!-- <th data-sortable="false" data-visible="false">isoDate</th> -->
-						</tr>
-					</thead>
-				</table>
+					<table id="crud-list-table" class="table display table-bordered">
+						<thead>
+							<tr>
+								<th class="sorting_asc">URL</th>
+								<!-- <th data-sortable="true">Filename</th> -->
+								<th style="width:120px" data-sortable="true">Progress</th>
+								<!-- <th style="width:50px" data-sortable="true">Created</th> -->
+								<!-- <th style="width:50px" data-sortable="true">Updated</th> -->
+								<th style="width:50px" data-sortable="true">Status</th>
+								<th style="width:50px" data-sortable="true">Size</th>
+								<!-- <th data-sortable="true">Notify</th> -->
+								<th style="width:300px" data-sortable="false">Actions</th>
+								<!-- <th data-sortable="false" data-visible="false">isoDate</th> -->
+							</tr>
+						</thead>
+					</table>
+
+					<div id="crud-alert" class="alert alert-info center-block" style="display:none">
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

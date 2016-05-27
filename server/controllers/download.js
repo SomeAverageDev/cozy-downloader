@@ -1,12 +1,19 @@
 var express = require('express');
 var router = express.Router();
-var NotificationsHelper = require('cozy-notifications-helper');
 var cozydb = require('cozydb');
 var fs = require('fs');
 
 var Download = require('../models/download');
 var User = require('../models/user');
 var CozyInstance = require('../models/cozyinstance');
+var Folder = require('../models/folder');
+
+// HOME Notification Helper
+var NotificationsHelper = require('cozy-notifications-helper');
+var notificationsHelper = new NotificationsHelper('downloader');
+
+// COZY domain
+var cozyDomain = '';
 
 var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
 if ( typeof persistentDirectory === 'undefined') {
@@ -14,10 +21,31 @@ if ( typeof persistentDirectory === 'undefined') {
 }
 
 CozyInstance.first(function (err, instance) {
-	console.log(instance);
+	console.log("domain:",instance);
+	cozyDomain = instance.domain;
 });
 
-var notificationsHelper = new NotificationsHelper('downloader');
+// FILES and FOLDERS apps options
+var filesFolderName = '/Downloads';
+var defaultFileTag = 'Downloads';
+
+// CREATE FOLDER IF NEEDED
+Folder.isPresent ( filesFolderName , function(err, isFolderPresent) {
+	if (err) {
+		console.log("Folder.isPresent:err:",err);
+	} else if (isFolderPresent) {
+		console.log ("folder is already present in Folders");
+	} else {
+		Folder.createNewFolder ( {path: '', name: filesFolderName.substring(1) }, function(err) {
+			if(err) {
+				// ERROR
+				console.log("Folder.createNewFolder:err:",err);
+			} else {
+				console.log ("Folder created (in Files app) :", filesFolderName);
+			}
+		});
+	}
+});
 
 var proceedWithDownload = function (download) {
 	// https://github.com/SamDecrock/node-httpreq#download
@@ -25,7 +53,9 @@ var proceedWithDownload = function (download) {
 	console.log("proceedWithDownload:START:", download.url);
 
 	var httpreq = require('httpreq');
-	var inProgress=0;
+
+	var currentPourcentage = 0;
+	var newPourcentage = 0;
 
 	download.fileprogress = 0;
 	download.filesize = 0;
@@ -35,40 +65,10 @@ var proceedWithDownload = function (download) {
 		function (err, progress) {
 			if (err) {
 				console.log('ERROR:httpreq.download:progress:',err,progress);
-/*				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
-					if(err) {
-						// ERROR
-						return console.log(err);
-					} else {
-						// OK
-						return true;
-					}
-				});*/
-			}
-			else {
-
-				if (inProgress !== parseInt(progress.percentage) && progress.percentage < 90) {
-					inProgress = parseInt(progress.percentage);
-					download.updateAttributes({updated: new Date(),filesize: progress.totalsize, fileprogress: progress.currentsize}, function(err) {
-						if(err) {
-							// ERROR
-							return console.log(err);
-						} else {
-							// OK
-							return true;
-						}
-					});
-				}
-			}
-			//console.log(progress);
-		},
-		function (err, res) {
-			if (err) {
-				console.log('ERROR:httpreq.download:res:1:',err,res);
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
-						return console.log(err);
+						return console.log("ERROR:httpreq.download:progress:download.updateAttributes", err);
 					} else {
 						// OK
 						return true;
@@ -76,34 +76,72 @@ var proceedWithDownload = function (download) {
 				});
 			}
 			else {
+				newPourcentage = (parseInt(progress.percentage) - (parseInt(progress.percentage) % 5));
+				if (newPourcentage !== currentPourcentage && newPourcentage < 90) {
+					console.log("httpreq.download:inProgress:", download.filename, ", pourcentage:", newPourcentage);
+					currentPourcentage = newPourcentage;
+					if (download.status === 'pending') {
+						download.updateAttributes({ updated: new Date(), status: download.status, filesize: progress.totalsize, fileprogress: progress.currentsize}, function(err) {
+							if(err) {
+								// ERROR
+								return console.log("ERROR:httpreq.download:progress:inProgress:download.updateAttributes",err);
+							} else {
+								// OK
+								return true;
+							}
+						});
+					}
+				}
+			}
+			//console.log(progress);
+		},
+		function (err, res) {
+			if (err) {
+				console.log('ERROR:httpreq.download:finished:res:1:',err,res);
+/*
+				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
+					if(err) {
+						// ERROR
+						return console.log("ERROR:httpreq.download:finished:err:download.updateAttributes:err", err);
+					} else {
+						// OK
+						return true;
+					}
+				});
+*/
+			}
+			else {
 				//console.log (res);
 				if (err) {
-					console.log('ERROR:httpreq.download:res:2:'+err);
+					console.log('ERROR:httpreq.download:finished:err:', err);
 					download.status = 'error';
 					download.statusMessage=JSON.stringify(err);
 
 				} else if (res.statusCode != 200) {
-					console.log('ERROR:httpreq.download:res:3:'+JSON.stringify(res));
+					console.log('httpreq.download:finished:OK:statusCode!=200:', res);
 					download.status = 'error';
 					download.statusMessage=JSON.stringify(res);
 
 					// error, delete local file
 					try {
-						console.log('request for delete file:' + res.downloadlocation);
+						console.log('TRY:httpreq.download:finished:fs.unlinkSync:', res.downloadlocation);
 						fs.unlinkSync(res.downloadlocation);
 					}
 					catch (err) {
-						console.log('file delete error:'+err);
+						console.log('ERROR:httpreq.download:finished:fs.unlinkSync:err:', err);
 					}
 				} else {
+					//console.log('OK:httpreq.download:finished:OK:', res);
 					// download OK
 					(download.filesize === 0) ? download.filesize = res.headers['content-length'] : function () {
 						var stats = fs.statSync(downloads[i].pathname);
 						return stats['size'];
 					};
-					download.fileprogress = res.headers['content-length'];
+
+					(res.headers['content-length'] === 0) ? download.fileprogress = download.filesize : download.fileprogress = res.headers['content-length'];
 					download.statusMessage=JSON.stringify(res);
 					download.status = 'available';
+					download.mime = res.headers['content-type'];
 				}
 
 				download.updateAttributes({
@@ -111,26 +149,39 @@ var proceedWithDownload = function (download) {
 						filesize:download.filesize,
 						fileprogress:download.fileprogress,
 						statusMessage:download.statusMessage,
-						status:download.status
+						status:download.status,
+						mime:download.mime
 					},
 					function(err) {
 						if(err) {
 							// ERROR
-							return console.log(err);
+							return console.log("ERROR:httpreq.download:finished:download.updateAttributes",err);
 						} else {
 							// OK
+							//console.log('download.updateAttributes:END:',download);
 							return true;
 						}
 					}
 				);
 
+				download.save(function(err) {
+						if(err) {
+							// ERROR
+							return console.log("ERROR:httpreq.download:finished:download.updateAttributes",err);
+						} else {
+							// OK
+							//console.log('download.updateAttributes:END:',download);
+							return true;
+						}
+					});
+
 				// HOME notification
 				var notifyMailMessage, notifyHomeMessage, notifyTitle;
 
 				if (download.status !== 'error') {
-					notifyMailMessage = 'Your file [<a href="downloads/'+download._id+'">'+download.filename+'</a>] has been downloaded successfully.';
+					notifyMailMessage = 'Your file [<a href="https://'+cozyDomain+'/#apps/downloader/">'+download.filename+'</a>] has been downloaded successfully.';
 					notifyMailMessage += '<br />It was submitted within the URL [<a href="'+download.url+'">'+download.url+'</a>].';
-					notifyMailMessage += '<br /><br />Find it on your cozy';
+					notifyMailMessage += '<br /><br />Find it on <a href="https://'+cozyDomain+'/your cozy</a> !';
 					notifyHomeMessage = 'Your file ['+download.filename+'] has been downloaded';
 					notifyTitle = 'Cozy-Downloader : your file is available !';
 				} else {
@@ -171,14 +222,12 @@ var proceedWithDownload = function (download) {
 						}
 					});
 
-
 				}
+				console.log("proceedWithDownload:END:", download.url);
 			}
 //					console.log(res);
 		}
 	);
-
-	console.log("proceedWithDownload:END:", download.url);
 }
 
 
@@ -261,7 +310,7 @@ router.get('/downloads/list', function(req, res, next) {
 
 					var lastUpdate = (new Date()-downloads[i].updated);
 
-					console.log('checking last update='+lastUpdate);
+					//console.log('checking last update='+lastUpdate);
 
 					// if last update is > 120s, it could be on error
 					if (lastUpdate > 120000) {
@@ -303,54 +352,6 @@ router.get('/downloads/list', function(req, res, next) {
         }
     });
 });
-
-// Fetch an existing download by its ID
-router.get('/downloads/:id', function(req, res, next) {
-	Download.find(req.params.id, function(err, download) {
-        if(err) {
-            // ERROR
-            next(err);
-        } else {
-			// OK
-			console.log("/downloads/:id - trying to send file : ", download.pathname);
-			try {
-				// check file exists
-				fs.accessSync(download.pathname, fs.F_OK);
-
-				console.log('GOOD : file exists !!');
-
-				var options = {
-					dotfiles: 'deny',
-					headers: {
-						'x-timestamp': Date.now(),
-						'x-sent': true,
-						'Content-Type': 'application/octet-stream',
-						'Content-Disposition': 'attachment; filename="' + download.filename +'"'
-					}
-				};
-	/*
-				if ( typeof persistentDirectory !== 'undefined') {
-					options.root = persistentDirectory;
-					console.log("setting options.root = ", options.root);
-				} else {
-					options.root = __dirname;
-					console.log("setting options.root = ", options.root);
-				}
-	*/
-				res.sendFile(download.pathname, options, function (err) {
-					console.log('ERROR (sendFile) : ',err);
-					res.sendStatus(404);
-				});
-			} catch (err) {
-				console.log('ERROR : file does not exists !!');
-				// file does not exist, update attributes
-				res.sendStatus(404);
-			}
-        }
-    });
-});
-
-
 // retry an existing download
 router.get('/downloads/retry/:id', function(req, res, next) {
 
@@ -411,6 +412,140 @@ router.delete('/downloads/delete/:id', function(req, res, next) {
 
 });
 
+
+// send download in File app
+router.put('/downloads/tofile/:id', function(req, res, next) {
+
+    Download.find(req.params.id, function(err, download) {
+        if(err) {
+			// ERROR
+	 		console.log('requested download not found in database, id:',err);
+			res.sendStatus(500);
+        } else if(!download) {
+            // DOC NOT FOUND
+			console.log('requested download not found in database, id:',req.params.id);
+            res.sendStatus(404);
+        } else {
+            // CHECKS TOSEND DOWNLOAD TO FILE APP
+			console.log('requested download found');
+
+			var File = require('../models/file');
+
+			File.isPresent(filesFolderName+'/'+download.filename, function(err, isFilePresent) {
+				console.log("File.isPresent:isFilePresent:", isFilePresent);
+				if (err) {
+					console.log("File.isPresent:err:",err);
+					res.sendStatus(200);
+				} else if (isFilePresent) {
+					console.log ("download ",download.pathname," already present in file...");
+					res.sendStatus(206);
+				} else {
+
+					// SEND DOWNLOAD TO FILE APP
+					var now = new Date();
+					var fileData = {
+						name: download.filename,
+						size: download.filesize,
+						path: filesFolderName,
+						creationDate: now.toISOString(),
+						lastModification: now.toISOString(),
+						"class": 'document',
+						tags: [defaultFileTag],
+						mime: download.mime
+					};
+					//console.log("File.createNewFile:fileData:", fileData);
+
+					File.createNewFile(fileData, download.pathname, function(err) {
+						if(err) {
+							// ERROR
+							console.log("File.createNewFile:err:", err);
+						} else {
+							console.log ("File.createNewFile:OK:download '",download.pathname,"' stored in files app");
+							// destroy the download and local file
+							download.destroy(function (err) {
+								if (download.pathname != null) {
+									try {
+										fs.unlinkSync(download.pathname);
+										console.log('download.destroy:OK:', download.pathname);
+										res.sendStatus(200);
+									}
+									catch (err) {
+										console.log("download.destroy:error:", err);
+										res.sendStatus(500);
+									}
+								}
+							});
+						}
+					});
+
+				}
+			});
+        }
+    });
+});
+
+// Get folders list
+router.get('/downloads/folder', function(req, res, next) {
+	Folder.byFullPath ( {key: filesFolderName}, function(err, folders) {
+		if(err) {
+			// ERROR
+			console.log(err);
+		} else {
+			if (folders.length > 0) {
+				res.status(200).send(JSON.stringify(folders));
+			} else {
+				res.sendStatus(404);
+			}
+		}
+	});
+});
+
+// Fetch an existing download by its ID
+router.get('/downloads/:id', function(req, res, next) {
+	Download.find(req.params.id, function(err, download) {
+        if(err) {
+            // ERROR
+            next(err);
+        } else {
+			// OK
+			console.log("/downloads/:id - trying to send file : ", download.pathname);
+			try {
+				// check file exists
+				fs.accessSync(download.pathname, fs.F_OK);
+
+				console.log('GOOD : file exists !!');
+
+				var options = {
+					dotfiles: 'deny',
+					headers: {
+						'x-timestamp': Date.now(),
+						'x-sent': true,
+						'Content-Type': 'application/octet-stream',
+						'Content-Disposition': 'attachment; filename="' + download.filename +'"'
+					}
+				};
+	/*
+				if ( typeof persistentDirectory !== 'undefined') {
+					options.root = persistentDirectory;
+					console.log("setting options.root = ", options.root);
+				} else {
+					options.root = __dirname;
+					console.log("setting options.root = ", options.root);
+				}
+	*/
+				res.sendFile(download.pathname, options, function (err) {
+					console.log('ERROR (sendFile) : ',err);
+					res.sendStatus(404);
+				});
+			} catch (err) {
+				console.log('ERROR : file does not exists !!');
+				// file does not exist, update attributes
+				res.sendStatus(404);
+			}
+        }
+    });
+});
+
 // Update an existing download
 router.put('/downloads/:id', function(req, res, next) {
     /*
@@ -438,6 +573,7 @@ router.put('/downloads/:id', function(req, res, next) {
 
     });
 });
+
 
 // Export the router instance to make it available from other files.
 module.exports = router;
