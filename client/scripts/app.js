@@ -25,12 +25,12 @@ function retryDownloadHelper(id) {
 		'url': 'downloads/retry/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
+			setTimeout(function(){updateListDownloads();return true;}, 300);
 			if (xhr.status !== 200) {
 				updateMessage('Retry request error');
 			} else {
 				updateMessage('Retry request successful !');
 			}
-			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
 		}
 	});
@@ -45,12 +45,12 @@ function deleteDownloadHelper (id) {
 		'url': 'downloads/delete/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
+			setTimeout(function(){updateListDownloads();return true;}, 300);
 			if (xhr.status !== 200) {
 				updateMessage('Delete request error...');
 			} else {
 				updateMessage('Delete request successful !');
 			}
-			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
 		}
 	});
@@ -70,6 +70,7 @@ function storeToFileDownloadHelper (id) {
 		'url': 'downloads/tofile/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
+			setTimeout(function(){updateListDownloads();return true;}, 300);
 			if (xhr.status == 206) {
 				updateMessage('This download is already stored in Files !');
 			} else if (xhr.status !== 200) {
@@ -77,7 +78,6 @@ function storeToFileDownloadHelper (id) {
 			} else {
 				updateMessage('Store in File app request successful !');
 			}
-			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
 		}
 	});
@@ -136,12 +136,12 @@ function createDownloadHandler() {
                 'content-type': 'application/json'
             },
 			'complete': function(xhr, textStatus) {
+				setTimeout(function(){updateListDownloads();return true;}, 300);
 				if (xhr.status !== 200) {
 					updateMessage('Download request error : '+xhr.responseText);
                 } else {
 					updateMessage('Download request successful !');
                 }
-				setTimeout(function(){updateListDownloads();}, 500);
 			}
         });
 
@@ -199,8 +199,8 @@ function updateListDownloads() {
 			oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
 			crudTable.fnDraw();
 
-			if (globalPourcentage < 100) {
-				setTimeout(function(){updateListDownloads();}, 2000);
+			if (data.length > 0 && globalPourcentage < 100) {
+				setTimeout(function(){updateListDownloads();return true;}, 2000);
 			}
 
 		}
@@ -210,7 +210,7 @@ function updateListDownloads() {
 
 function autoReload() {
 	updateListDownloads();
-	setTimeout(function(){autoReload();}, autoReloadTimer);
+	setTimeout(function(){autoReload();return true;}, autoReloadTimer);
 	return false;
 };
 
@@ -227,7 +227,7 @@ function updateMessage (message) {
 	var $crudAlert = $('#crud-alert');
 	$crudAlert.html(message);
 	$crudAlert.show();
-	setTimeout(function(){hideMessage();}, 10000);
+	setTimeout(function(){hideMessage();return true;}, 10000);
 }
 
 function hideMessage () {
