@@ -50,7 +50,7 @@ var proceedWithDownload = function (download) {
 			}
 			else {
 
-				if (inProgress !== parseInt(progress.percentage) && progress.percentage < 90) {
+				if (inProgress !== parseInt(progress.percentage) && parseInt(progress.percentage) < 90) {
 					inProgress = parseInt(progress.percentage);
 					download.updateAttributes({status: download.status, updated: new Date(),filesize: progress.totalsize, fileprogress: progress.currentsize}, function(err) {
 						if(err) {
@@ -79,7 +79,7 @@ var proceedWithDownload = function (download) {
 				});
 			}
 			else {
-				//console.log (res);
+				console.log (res);
 				if (err) {
 					console.log('ERROR:httpreq.download:res:2:'+err);
 					download.status = 'error';
@@ -110,18 +110,18 @@ var proceedWithDownload = function (download) {
 					download.status = 'available';
 					download.mime = res.headers['content-type'];
 				}
-
+/*
 				download.save(function(err) {
 					if(err) {
 						// ERROR
-						return console.log(err);
+						console.log('download.save:err:',err);
 					} else {
 						// OK
-						console.log('download.save:OK');
-						return true;
+						console.log('download.save:OK:',download);
 					}
+					return true;
 				});
-/*
+*/
 				download.updateAttributes({
 						updated: new Date(),
 						filesize:download.filesize,
@@ -136,12 +136,12 @@ var proceedWithDownload = function (download) {
 							return console.log(err);
 						} else {
 							// OK
-							console.log('download.updateAttributes:OK');
+							console.log('download.updateAttributes:OK:',download);
 							return true;
 						}
 					}
 				);
-*/
+
 				// HOME notification
 				var notifyMailMessage, notifyHomeMessage, notifyTitle;
 
@@ -195,8 +195,6 @@ var proceedWithDownload = function (download) {
 //					console.log(res);
 		}
 	);
-
-	console.log("proceedWithDownload:END:", download.url);
 }
 
 
