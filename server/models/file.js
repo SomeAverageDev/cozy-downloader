@@ -43,26 +43,30 @@ module.exports = File = (function(superClass) {
 
 	File.createNewFile = function(data, file, callback) {
 	  var attachBinary, upload;
-	  upload = true;
+
 	  attachBinary = function(newFile) {
 		file.path = data.name;
+	    console.log("File.createNewFile:File.create:attachBinary");
 		return newFile.attachBinary(file, {
 		  "name": "file"
 		}, function(err, res, body) {
-		  upload = false;
 		  if (err) {
+		    console.log("File.createNewFile:File.create:attachBinary:err");
 			return newFile.destroy(function(error) {
 			  return callback("Error attaching binary: " + err);
 			});
 		  } else {
+		    console.log("File.createNewFile:File.create:attachBinary:OK");
 			return true;
 		  }
 		});
 	  };
+
 	  return File.create(data, function(err, newFile) {
 		if (err) {
-		  return callback(new Error("Server error while creating file; " + err));
+		  return callback(new Error("File.createNewFile:File.create:goto:attachBinary:Server error while creating file:", err));
 		} else {
+		  console.log("File.createNewFile:File.create:goto:attachBinary");
 		  attachBinary(newFile);
 		  return true;
 		}
