@@ -26,23 +26,23 @@ module.exports = File = (function(superClass) {
   };
 
 	File.byFullPath = function(params, callback) {
-	  return File.request("byFullPath", params, callback);
+		return File.request("byFullPath", params, callback);
 	};
 
 	File.isPresent = function(fullPath, callback) {
-	  console.log("File.isPresent:",fullPath);
-	  return File.request("byFullPath", {
-		key: fullPath
-	  }, function(err, files) {
-		if (err) {
-		  callback(err);
-		}
-		return callback(null, (files != null) && files.length > 0);
-	  });
+		//console.log("File.isPresent:",fullPath);
+		return File.request("byFullPath", {
+			key: fullPath
+		}, function(err, files) {
+			if (err) {
+				callback(err);
+			}
+			return callback(null, (files != null) && files.length > 0);
+		});
 	};
 
 	File.createNewFile = function(data, file, callback) {
-	  var attachBinary, upload;
+	  var attachBinary;
 
 	  attachBinary = function(newFile) {
 		file.path = data.name;
