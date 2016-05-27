@@ -218,7 +218,7 @@ function initFilesLink () {
     var $link = $('#open-files');
 
 	$.getJSON('downloads/folder', null, function( data ) {
-		$link.attr("href", "/#apps/files/#folders/"+data[0]._id);
+		$link.attr("href", "/#apps/files/folders/"+data[0]._id);
 	});
 	return false;
 }
