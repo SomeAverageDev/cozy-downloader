@@ -19,7 +19,7 @@ if ( typeof persistentDirectory === 'undefined') {
 
 
 CozyInstance.first(function (err, instance) {
-//	console.log("domain:",instance.domain);
+	console.log("domain:",instance);
 	cozyDomain = instance.domain;
 });
 
@@ -62,15 +62,15 @@ var proceedWithDownload = function (download) {
 		function (err, progress) {
 			if (err) {
 				console.log('ERROR:httpreq.download:progress:',err,progress);
-/*				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
+				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
-						return console.log(err);
+						return console.log("ERROR:httpreq.download:progress:download.updateAttributes",err);
 					} else {
 						// OK
 						return true;
 					}
-				});*/
+				});
 			}
 			else {
 
@@ -79,7 +79,7 @@ var proceedWithDownload = function (download) {
 					download.updateAttributes({status: download.status, updated: new Date(),filesize: progress.totalsize, fileprogress: progress.currentsize}, function(err) {
 						if(err) {
 							// ERROR
-							return console.log(err);
+							return console.log("ERROR:httpreq.download:progress:inProgress:download.updateAttributes",err);
 						} else {
 							// OK
 							return true;
@@ -91,11 +91,11 @@ var proceedWithDownload = function (download) {
 		},
 		function (err, res) {
 			if (err) {
-				console.log('ERROR:httpreq.download:res:1:',err,res);
+				console.log('ERROR:httpreq.download:finished:res:1:',err,res);
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
-						return console.log(err);
+						return console.log("ERROR:httpreq.download:finished:err:download.updateAttributes:err", err);
 					} else {
 						// OK
 						return true;
@@ -103,26 +103,27 @@ var proceedWithDownload = function (download) {
 				});
 			}
 			else {
-				console.log (res);
+				//console.log (res);
 				if (err) {
-					console.log('ERROR:httpreq.download:res:2:'+err);
+					console.log('ERROR:httpreq.download:finished:err:', err);
 					download.status = 'error';
 					download.statusMessage=JSON.stringify(err);
 
 				} else if (res.statusCode != 200) {
-					console.log('ERROR:httpreq.download:res:3:'+JSON.stringify(res));
+					console.log('httpreq.download:finished:OK:statusCode!=200:', res);
 					download.status = 'error';
 					download.statusMessage=JSON.stringify(res);
 
 					// error, delete local file
 					try {
-						console.log('request for delete file:' + res.downloadlocation);
+						console.log('TRY:httpreq.download:finished:fs.unlinkSync:', res.downloadlocation);
 						fs.unlinkSync(res.downloadlocation);
 					}
 					catch (err) {
-						console.log('file delete error:'+err);
+						console.log('ERROR:httpreq.download:finished:fs.unlinkSync:err:', err);
 					}
 				} else {
+					console.log('OK:httpreq.download:finished:OK:', res);
 					// download OK
 					(download.filesize === 0) ? download.filesize = res.headers['content-length'] : function () {
 						var stats = fs.statSync(downloads[i].pathname);
@@ -134,18 +135,7 @@ var proceedWithDownload = function (download) {
 					download.status = 'available';
 					download.mime = res.headers['content-type'];
 				}
-/*
-				download.save(function(err) {
-					if(err) {
-						// ERROR
-						console.log('download.save:err:',err);
-					} else {
-						// OK
-						console.log('download.save:OK:',download);
-					}
-					return true;
-				});
-*/
+
 				download.updateAttributes({
 						updated: new Date(),
 						filesize:download.filesize,
@@ -157,7 +147,7 @@ var proceedWithDownload = function (download) {
 					function(err) {
 						if(err) {
 							// ERROR
-							return console.log(err);
+							return console.log("ERROR:httpreq.download:finished:download.updateAttributes",err);
 						} else {
 							// OK
 							console.log('download.updateAttributes:OK:',download);
