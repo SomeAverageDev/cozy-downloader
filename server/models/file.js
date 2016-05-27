@@ -69,7 +69,8 @@ module.exports = File = (function(superClass) {
 		  return callback(new Error("File.createNewFile:File.create:goto:attachBinary:Server error while creating file:"+ err));
 		} else {
 		  console.log("File.createNewFile:File.create:goto:attachBinary:OK");
-		  return attachBinary(newFile);
+		  attachBinary(newFile);
+		  return callback(void 0));
 		}
 	  });
 	};
