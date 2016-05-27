@@ -451,11 +451,11 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 								if (download.pathname != null) {
 									try {
 										fs.unlinkSync(download.pathname);
-										console.log('request for delete file:' + download.pathname);
+										console.log('download.destroy:OK:', download.pathname);
 										res.sendStatus(200);
 									}
 									catch (err) {
-										console.log('file delete error:'+err);
+										console.log("download.destroy:error:", err);
 										res.sendStatus(500);
 									}
 								}
