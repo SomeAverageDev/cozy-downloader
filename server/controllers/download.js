@@ -413,7 +413,7 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 			var File = require('../models/file');
 
 			return File.isPresent(filesFolderName+'/'+download.filename, function(err, isFilePresent) {
-				console.log("File.isPresent:isFilePresent:",isFilePresent);
+				console.log("File.isPresent:isFilePresent:", isFilePresent);
 				if (err) {
 					console.log("File.isPresent:err:",err);
 					res.sendStatus(200);
@@ -433,16 +433,17 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 						"class": 'document',
 						mime: download.mime
 					};
+					console.log("File.createNewFile:", fileData);
 
 					var fileCreated = File.createNewFile(fileData, download.pathname, function(err) {
-						console.log("File.createNewFile:", fileData);
 						if(err) {
 							// ERROR
-							console.log("File.createNewFile:err:",err);
+							console.log("File.createNewFile:err:", err);
 						} else {
-							console.log ("download '",download.pathname,"' stored in files app");
+							console.log ("File.createNewFile:OK:download '",download.pathname,"' stored in files app");
 						}
 					});
+					console.log("File.createNewFile:fileCreated:", fileCreated);
 
 					if (fileCreated === true) {
 							// destroy the download and local file

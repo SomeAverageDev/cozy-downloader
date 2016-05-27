@@ -200,13 +200,13 @@ function updateListDownloads() {
 					]
 				);
 			}
-
+/*
 			if (globalPourcentage === 100) {
 				$crudAlert.html('All downloads available !');
 			} else if (globalPourcentage > 0) {
 				$crudAlert.html('Download in progress !');
 			}
-
+*/
 			oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
 			crudTable.fnDraw();
 		}
