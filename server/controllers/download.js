@@ -250,9 +250,9 @@ var proceedWithDownload = function (download) {
 
 				if (download.status !== 'error') {
 					if (download.storeinfiles) {
-						notifyMailMessage = 'Your file [<a href="'+localHost+'#apps/files/folders/'+folderInFilesId+'">'+download.filename+'</a>] has been downloaded successfully.';
+						notifyMailMessage = 'Your file [<a href="'+localHost+'/#apps/files/folders/'+folderInFilesId+'">'+download.filename+'</a>] has been downloaded successfully.';
 					} else {
-						notifyMailMessage = 'Your file [<a href="'+localHost+'#apps/downloader/">'+download.filename+'</a>] has been downloaded successfully.';
+						notifyMailMessage = 'Your file [<a href="'+localHost+'/#apps/downloader/">'+download.filename+'</a>] has been downloaded successfully.';
 					}
 					notifyMailMessage += '<br />It was submitted within the URL [<a href="'+download.url+'">'+download.url+'</a>].';
 					notifyMailMessage += '<br /><br />Find it on <a href="'+localHost+'">your cozy</a> !';
@@ -521,8 +521,8 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 *	Get folders list
 *****************************************************/
 router.get('/downloads/folder', function(req, res, next) {
-	//console.log(req.headers);
-	localHost = req.headers.referer; // for futur use
+	localHost = req.protocol + '://' + req.headers.host ; // for futur use
+	console.log("localHost:", localHost);
 
 	Folder.byFullPath ( {key: filesFolderName}, function(err, folders) {
 		if(err) {
