@@ -26,12 +26,12 @@ function retryDownloadHelper(id) {
 		'url': 'downloads/retry/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
-			setTimeout(function(){updateListDownloads();}, 300);
 			if (xhr.status !== 200) {
 				updateMessage('Retry request error');
 			} else {
 				updateMessage('Retry request successful !');
 			}
+			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
 		}
 	});
@@ -46,12 +46,12 @@ function deleteDownloadHelper (id) {
 		'url': 'downloads/delete/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
-			setTimeout(function(){updateListDownloads();}, 300);
 			if (xhr.status !== 200) {
 				updateMessage('Delete request error...');
 			} else {
 				updateMessage('Delete request successful !');
 			}
+			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
 		}
 	});
@@ -71,14 +71,15 @@ function storeToFileDownloadHelper (id) {
 		'url': 'downloads/tofile/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
-			setTimeout(function(){updateListDownloads();}, 300);
 			if (xhr.status == 206) {
 				updateMessage('This download is already stored in Files !');
 			} else if (xhr.status !== 200) {
 				updateMessage('Store in File app request error...');
 			} else {
 				updateMessage('Store in File app request successful !');
+				autoReloadMultiplier = 1;
 			}
+			setTimeout(function(){updateListDownloads();}, 1000);
 			return true;
 		}
 	});
@@ -134,6 +135,7 @@ function createDownloadHandler() {
 		// data json formating
 		formData = JSON.stringify(formData, null, 2);
 
+		autoReloadMultiplier = 1;
 
         $.ajax({
             'method': 'POST',
@@ -143,17 +145,14 @@ function createDownloadHandler() {
                 'content-type': 'application/json'
             },
 			'complete': function(xhr, textStatus) {
-				setTimeout(function(){updateListDownloads();}, 300);
 				if (xhr.status !== 200) {
 					updateMessage('Download request error : '+xhr.responseText);
                 } else {
 					updateMessage('Download request successful !');
                 }
+				setTimeout(function(){updateListDownloads();}, 300);
 			}
         });
-
-		autoReloadMultiplier = 1;
-		setTimeout(function(){updateListDownloads();}, 300);
 
 		$('#new-url-form')[0].reset();
 		return true;
