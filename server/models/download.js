@@ -31,10 +31,6 @@ var Download = cozydb.getModel('Download', {
         'type': String,
         'default': ''
     },
-    'fileId': {
-        'type': String,
-        'default': ''
-    },
 	'notify': {
         'type': Boolean,
         'default': false
@@ -47,9 +43,9 @@ var Download = cozydb.getModel('Download', {
         'type': String,
         'default': null
     },
-	'token': {
-      'type': String,
-      'default': null
+	'storeinfiles': {
+      'type': Boolean,
+      'default': false
     },
 	'created': {
       'type': Date,

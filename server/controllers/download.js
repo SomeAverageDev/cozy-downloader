@@ -13,7 +13,9 @@ var NotificationsHelper = require('cozy-notifications-helper');
 var notificationsHelper = new NotificationsHelper('downloader');
 
 // COZY domain
-var cozyDomain = '';
+var localHost = '';
+var cozyLocale = 'en';
+var folderInFilesId = '';
 
 var persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY;
 if ( typeof persistentDirectory === 'undefined') {
@@ -21,8 +23,9 @@ if ( typeof persistentDirectory === 'undefined') {
 }
 
 CozyInstance.first(function (err, instance) {
-	console.log("domain:",instance);
-	cozyDomain = instance.domain;
+	//console.log("domain:",instance);
+	//cozyDomain = instance.domain;
+	cozyLocale = instance.locale;
 });
 
 // FILES and FOLDERS apps options
@@ -47,6 +50,65 @@ Folder.isPresent ( filesFolderName , function(err, isFolderPresent) {
 	}
 });
 
+/*****************************************************
+*	Function to store a download in the Files app
+*****************************************************/
+var storeDownloadInFiles = function (download) {
+	var File = require('../models/file');
+
+	File.isPresent(filesFolderName+'/'+download.filename, function(err, isFilePresent) {
+		console.log("File.isPresent:isFilePresent:", isFilePresent);
+		if (err) {
+			console.log("File.isPresent:err:",err);
+			return true;//res.sendStatus(200);
+		} else if (isFilePresent) {
+			console.log ("download ",download.pathname," already present in file...");
+			return true;//res.sendStatus(206);
+		} else {
+
+			// SEND DOWNLOAD TO FILE APP
+			var now = new Date();
+			var fileData = {
+				name: download.filename,
+				size: download.filesize,
+				path: filesFolderName,
+				creationDate: now.toISOString(),
+				lastModification: now.toISOString(),
+				"class": 'document',
+				tags: [defaultFileTag],
+				mime: download.mime
+			};
+			//console.log("File.createNewFile:fileData:", fileData);
+
+			File.createNewFile(fileData, download.pathname, function(err) {
+				if(err) {
+					// ERROR
+					console.log("File.createNewFile:err:", err);
+				} else {
+					console.log ("File.createNewFile:OK:download '",download.pathname,"' stored in files app");
+					// destroy the download and local file
+					download.destroy(function (err) {
+						if (download.pathname != null) {
+							try {
+								fs.unlinkSync(download.pathname);
+								console.log('download.destroy:OK:', download.pathname);
+								return true;//res.sendStatus(200);
+							}
+							catch (err) {
+								console.log("download.destroy:error:", err);
+								return false;//res.sendStatus(500);
+							}
+						}
+					});
+				}
+			});
+		}
+	});
+};
+
+/*****************************************************
+*	Function to download a file from an URL
+*****************************************************/
 var proceedWithDownload = function (download) {
 	// https://github.com/SamDecrock/node-httpreq#download
 
@@ -77,7 +139,7 @@ var proceedWithDownload = function (download) {
 			}
 			else {
 				newPourcentage = (parseInt(progress.percentage) - (parseInt(progress.percentage) % 5));
-				if (newPourcentage !== currentPourcentage && newPourcentage < 90) {
+				if (newPourcentage > currentPourcentage && newPourcentage < 90) {
 					console.log("httpreq.download:inProgress:", download.filename, ", pourcentage:", newPourcentage);
 					currentPourcentage = newPourcentage;
 					if (download.status === 'pending') {
@@ -87,9 +149,11 @@ var proceedWithDownload = function (download) {
 								return console.log("ERROR:httpreq.download:progress:inProgress:download.updateAttributes",err);
 							} else {
 								// OK
+								//console.log("httpreq.download:progress:inProgress:download.updateAttributes:OK");
 								return true;
 							}
 						});
+
 					}
 				}
 			}
@@ -163,25 +227,35 @@ var proceedWithDownload = function (download) {
 						}
 					}
 				);
-
+/*
 				download.save(function(err) {
 						if(err) {
 							// ERROR
-							return console.log("ERROR:httpreq.download:finished:download.updateAttributes",err);
+							return console.log("ERROR:httpreq.download:finished:download.save",err);
 						} else {
 							// OK
 							//console.log('download.updateAttributes:END:',download);
 							return true;
 						}
 					});
+*/
+
+				// Store in Files
+				if (download.storeinfiles == true) {
+					storeDownloadInFiles(download);
+				}
 
 				// HOME notification
 				var notifyMailMessage, notifyHomeMessage, notifyTitle;
 
 				if (download.status !== 'error') {
-					notifyMailMessage = 'Your file [<a href="https://'+cozyDomain+'/#apps/downloader/">'+download.filename+'</a>] has been downloaded successfully.';
+					if (download.storeinfiles) {
+						notifyMailMessage = 'Your file [<a href="'+localHost+'#apps/files/folders/'+folderInFilesId+'">'+download.filename+'</a>] has been downloaded successfully.';
+					} else {
+						notifyMailMessage = 'Your file [<a href="'+localHost+'#apps/downloader/">'+download.filename+'</a>] has been downloaded successfully.';
+					}
 					notifyMailMessage += '<br />It was submitted within the URL [<a href="'+download.url+'">'+download.url+'</a>].';
-					notifyMailMessage += '<br /><br />Find it on <a href="https://'+cozyDomain+'/your cozy</a> !';
+					notifyMailMessage += '<br /><br />Find it on <a href="'+localHost+'">your cozy</a> !';
 					notifyHomeMessage = 'Your file ['+download.filename+'] has been downloaded';
 					notifyTitle = 'Cozy-Downloader : your file is available !';
 				} else {
@@ -231,9 +305,10 @@ var proceedWithDownload = function (download) {
 }
 
 
-// Create a new download
+/*****************************************************
+*	Create a new download
+*****************************************************/
 router.post('/downloads/new/', function(req, res, next) {
-	//console.log(req.body);
 
 	if (req.body.url === '' || typeof (req.body.url) === 'undefined') {
 		return res.status(500).send('the url parameter is empty');
@@ -292,7 +367,9 @@ router.post('/downloads/new/', function(req, res, next) {
 
 });
 
-// List of all downloads
+/*****************************************************
+*	List of all downloads
+*****************************************************/
 router.get('/downloads/list', function(req, res, next) {
 
     Download.request('all', function(err, downloads) {
@@ -310,12 +387,12 @@ router.get('/downloads/list', function(req, res, next) {
 
 					var lastUpdate = (new Date()-downloads[i].updated);
 
-					//console.log('checking last update='+lastUpdate);
 
-					// if last update is > 120s, it could be on error
-					if (lastUpdate > 120000) {
+					// if last update is > 90s, it could be on error
+					if (lastUpdate > 90000) {
+						console.log("checking last update:",lastUpdate, "change status to error");
 						downloads[i].status = 'error';
-						downloads[i].statusMessage = 'last update is old, download might have been truncated...';
+						downloads[i].statusMessage = "last update is old, download might have been truncated...";
 					}
 				}
 
@@ -352,7 +429,10 @@ router.get('/downloads/list', function(req, res, next) {
         }
     });
 });
-// retry an existing download
+
+/*****************************************************
+*	Retry an existing download
+*****************************************************/
 router.get('/downloads/retry/:id', function(req, res, next) {
 
     Download.find(req.params.id, function(err, download) {
@@ -381,8 +461,9 @@ router.get('/downloads/retry/:id', function(req, res, next) {
 
 });
 
-
-// Remove an existing download and delete file
+/*****************************************************
+*	Remove an existing download and delete file
+*****************************************************/
 router.delete('/downloads/delete/:id', function(req, res, next) {
 
     Download.find(req.params.id, function(err, download) {
@@ -412,8 +493,9 @@ router.delete('/downloads/delete/:id', function(req, res, next) {
 
 });
 
-
-// send download in File app
+/*****************************************************
+*	Send download in File app
+*****************************************************/
 router.put('/downloads/tofile/:id', function(req, res, next) {
 
     Download.find(req.params.id, function(err, download) {
@@ -426,72 +508,29 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 			console.log('requested download not found in database, id:',req.params.id);
             res.sendStatus(404);
         } else {
-            // CHECKS TOSEND DOWNLOAD TO FILE APP
+            // CHECKS TO SEND DOWNLOAD TO FILE APP
 			console.log('requested download found');
 
-			var File = require('../models/file');
-
-			File.isPresent(filesFolderName+'/'+download.filename, function(err, isFilePresent) {
-				console.log("File.isPresent:isFilePresent:", isFilePresent);
-				if (err) {
-					console.log("File.isPresent:err:",err);
-					res.sendStatus(200);
-				} else if (isFilePresent) {
-					console.log ("download ",download.pathname," already present in file...");
-					res.sendStatus(206);
-				} else {
-
-					// SEND DOWNLOAD TO FILE APP
-					var now = new Date();
-					var fileData = {
-						name: download.filename,
-						size: download.filesize,
-						path: filesFolderName,
-						creationDate: now.toISOString(),
-						lastModification: now.toISOString(),
-						"class": 'document',
-						tags: [defaultFileTag],
-						mime: download.mime
-					};
-					//console.log("File.createNewFile:fileData:", fileData);
-
-					File.createNewFile(fileData, download.pathname, function(err) {
-						if(err) {
-							// ERROR
-							console.log("File.createNewFile:err:", err);
-						} else {
-							console.log ("File.createNewFile:OK:download '",download.pathname,"' stored in files app");
-							// destroy the download and local file
-							download.destroy(function (err) {
-								if (download.pathname != null) {
-									try {
-										fs.unlinkSync(download.pathname);
-										console.log('download.destroy:OK:', download.pathname);
-										res.sendStatus(200);
-									}
-									catch (err) {
-										console.log("download.destroy:error:", err);
-										res.sendStatus(500);
-									}
-								}
-							});
-						}
-					});
-
-				}
-			});
+			storeDownloadInFiles(download);
+			res.sendStatus(200);
         }
     });
 });
 
-// Get folders list
+/*****************************************************
+*	Get folders list
+*****************************************************/
 router.get('/downloads/folder', function(req, res, next) {
+	//console.log(req.headers);
+	localHost = req.headers.referer; // for futur use
+
 	Folder.byFullPath ( {key: filesFolderName}, function(err, folders) {
 		if(err) {
 			// ERROR
 			console.log(err);
 		} else {
 			if (folders.length > 0) {
+				folderInFilesId = folders[0]._id; // for futur use
 				res.status(200).send(JSON.stringify(folders));
 			} else {
 				res.sendStatus(404);
@@ -500,7 +539,9 @@ router.get('/downloads/folder', function(req, res, next) {
 	});
 });
 
-// Fetch an existing download by its ID
+/*****************************************************
+*	Fetch an existing download by its ID
+*****************************************************/
 router.get('/downloads/:id', function(req, res, next) {
 	Download.find(req.params.id, function(err, download) {
         if(err) {
@@ -524,15 +565,7 @@ router.get('/downloads/:id', function(req, res, next) {
 						'Content-Disposition': 'attachment; filename="' + download.filename +'"'
 					}
 				};
-	/*
-				if ( typeof persistentDirectory !== 'undefined') {
-					options.root = persistentDirectory;
-					console.log("setting options.root = ", options.root);
-				} else {
-					options.root = __dirname;
-					console.log("setting options.root = ", options.root);
-				}
-	*/
+
 				res.sendFile(download.pathname, options, function (err) {
 					console.log('ERROR (sendFile) : ',err);
 					res.sendStatus(404);
@@ -546,7 +579,9 @@ router.get('/downloads/:id', function(req, res, next) {
     });
 });
 
-// Update an existing download
+/*****************************************************
+*	Update an existing download
+*****************************************************/
 router.put('/downloads/:id', function(req, res, next) {
     /*
         First, get the document we want to update.

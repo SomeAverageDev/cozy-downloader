@@ -1,4 +1,6 @@
-
+.modal-dialog {
+	width: 70%;
+}
 .panel .panel-heading {
 	background-color: #32363f;
 }

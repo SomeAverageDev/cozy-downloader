@@ -27,27 +27,35 @@
 		<form class="form-inline" id="new-url-form" role="form">
 			
 			<div class="modal-content">
-				<!-- MODAL CONTENT-->
+				<!-- MODAL CONTENT -->
 				<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<h4 class="modal-title">Download a new file from URL</h4>
+					<!-- <button type="button" class="close" data-dismiss="modal">&times;</button> -->
+					<h4 class="modal-title">Download a new file from URL</h4>
 				</div>
 				
 			  
-			  <div class="modal-body">
+			  <div class="modal-body" >
 
 				<!-- MODAL BODY -->
-				<div class="container" id="crud-create-container">
-					<div class="input-group">
-						<span class="input-group-addon" id="basic-addon1">URL :</span>
-						<input type="url" title="URL" class="form-control" id="create-url" placeholder="Enter URL" aria-describedby="basic-addon1" />
+				<div class="container" id="crud-create-container"  style="width: 100%;">
+					<div class="col-md-2">
+						<div class="input-group">
+						  <div class="checkbox" style="display:inline;">
+							<label class="control-label" for="create-notify">
+								<input type="checkbox" title="Notify me by mail" id="create-notify" /> Notify me
+							</label>
+							
+							<label class="control-label" for="create-storeinfiles">
+								<input type="checkbox" title="Store in Files" id="create-storeinfiles" /> Store in Files
+							</label>
+						  </div>
+						</div>
 					</div>
-					<div class="input-group">
-					  <div class="checkbox">
-						<label class="control-label" for="create-notify">
-							<input type="checkbox" title="Notify me by mail" id="create-notify" /> Notify me
-						</label>
-					  </div>
+					<div class="col-md-10">
+						<div class="input-group" style="width: 100%">
+							<span class="input-group-addon" id="basic-addon1">URL :</span>
+							<input type="url" title="URL" class="form-control" id="create-url" placeholder="Enter URL" aria-describedby="basic-addon1" style="width: 100%" />
+						</div>
 					</div>
 				</div>
 				<!-- END MODAL BODY -->
@@ -62,7 +70,7 @@
 				<!-- END MODAL FOOTER -->
 			  </div>
 
-			  <!-- END MODAL CONTENT-->
+			  <!-- END MODAL CONTENT -->
 			</div>
 
 		</form>
@@ -78,7 +86,7 @@
 					<!-- Trigger the modal with a button -->
 					<div class="row">
 						<div class="col-md-1 text-center"><img src="app/assets/icons/main_icon.png" width="40" /></div>
-						<div class="col-md-7"><h4>AVAILABLE FILES</h4></div>
+						<div class="col-md-7"><h4>AVAILABLE DOWNLOADS LIST</h4></div>
 						<div class="col-md-4 text-right" >
 							<a href="/#apps/files/" id="open-files" type="button" class="btn btn-info" target="_top" >FILES</a>
 							<button id="submit-new-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal">NEW DOWNLOAD</button>

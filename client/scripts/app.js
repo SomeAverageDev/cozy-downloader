@@ -1,5 +1,6 @@
 // refresh table from http://www.meadow.se/wordpress/refreshing-data-in-jquery-datatables/
-const autoReloadTimer = 10000;
+const autoReloadTimer = 1000;
+var autoReloadMultiplier = 20;
 
 function stringShortener (str, maxSize) {
 	if (typeof maxSize === 'undefined') {
@@ -25,7 +26,7 @@ function retryDownloadHelper(id) {
 		'url': 'downloads/retry/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
-			setTimeout(function(){updateListDownloads();return true;}, 300);
+			setTimeout(function(){updateListDownloads();}, 300);
 			if (xhr.status !== 200) {
 				updateMessage('Retry request error');
 			} else {
@@ -45,7 +46,7 @@ function deleteDownloadHelper (id) {
 		'url': 'downloads/delete/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
-			setTimeout(function(){updateListDownloads();return true;}, 300);
+			setTimeout(function(){updateListDownloads();}, 300);
 			if (xhr.status !== 200) {
 				updateMessage('Delete request error...');
 			} else {
@@ -70,7 +71,7 @@ function storeToFileDownloadHelper (id) {
 		'url': 'downloads/tofile/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
-			setTimeout(function(){updateListDownloads();return true;}, 300);
+			setTimeout(function(){updateListDownloads();}, 300);
 			if (xhr.status == 206) {
 				updateMessage('This download is already stored in Files !');
 			} else if (xhr.status !== 200) {
@@ -103,14 +104,14 @@ function initListDownloads() {
 function createDownloadHandler() {
     var $url = $('#create-url');
     var $notify = $('#create-notify');
+    var $storeInFiles = $('#create-storeinfiles');
     var $button = $('#new-url-form button');
 
     function onSubmit() {
 
-		updateMessage('Download request submitted...');
-
 		var formData = {
-			'notify': false
+			'notify': false,
+			'storeinfiles': false
 		};
 
 		// input validation
@@ -121,12 +122,18 @@ function createDownloadHandler() {
 			return false;
         }
 
+		updateMessage('Download request submitted...');
+
         if ($notify[0].checked) {
             formData.notify = true;
+        }
+        if ($storeInFiles[0].checked) {
+            formData.storeinfiles = true;
         }
 
 		// data json formating
 		formData = JSON.stringify(formData, null, 2);
+
 
         $.ajax({
             'method': 'POST',
@@ -136,7 +143,7 @@ function createDownloadHandler() {
                 'content-type': 'application/json'
             },
 			'complete': function(xhr, textStatus) {
-				setTimeout(function(){updateListDownloads();return true;}, 300);
+				setTimeout(function(){updateListDownloads();}, 300);
 				if (xhr.status !== 200) {
 					updateMessage('Download request error : '+xhr.responseText);
                 } else {
@@ -144,6 +151,9 @@ function createDownloadHandler() {
                 }
 			}
         });
+
+		autoReloadMultiplier = 1;
+		setTimeout(function(){updateListDownloads();}, 300);
 
 		$('#new-url-form')[0].reset();
 		return true;
@@ -165,11 +175,14 @@ function updateListDownloads() {
 
 			for (var i=0; i<data.length; i++)
 			{
+
 				data[i].pourcentage = parseInt(data[i].fileprogress/data[i].filesize*100);
+
+				(isNaN(data[i].pourcentage)) ? (data[i].pourcentage = 0): '';
+
 				if (globalPourcentage > data[i].pourcentage) {
 					globalPourcentage = data[i].pourcentage;
 				}
-				(isNaN(data[i].pourcentage)) ? (data[i].pourcentage = 0): '';
 
 				var actions = '';
 				actions += '<button type="button" class="btn btn-danger btn-sm" onClick="deleteDownloadHelper(\''+data[i]._id+'\')">Delete</button>&nbsp;';
@@ -199,10 +212,7 @@ function updateListDownloads() {
 			oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
 			crudTable.fnDraw();
 
-			if (data.length > 0 && globalPourcentage < 100) {
-				setTimeout(function(){updateListDownloads();return true;}, 2000);
-			}
-
+			autoReloadMultiplier = 1+(globalPourcentage/5);
 		}
 	});
 	return false;
@@ -210,7 +220,7 @@ function updateListDownloads() {
 
 function autoReload() {
 	updateListDownloads();
-	setTimeout(function(){autoReload();return true;}, autoReloadTimer);
+	setTimeout(function(){autoReload();}, autoReloadMultiplier * autoReloadTimer);
 	return false;
 };
 
@@ -227,7 +237,7 @@ function updateMessage (message) {
 	var $crudAlert = $('#crud-alert');
 	$crudAlert.html(message);
 	$crudAlert.show();
-	setTimeout(function(){hideMessage();return true;}, 10000);
+	setTimeout(function(){hideMessage();}, 10000);
 }
 
 function hideMessage () {
@@ -244,8 +254,8 @@ window.onload = function() {
     createDownloadHandler();
     initListDownloads();
 	initFilesLink();
-	updateListDownloads();
 	// auto reload table
-	setTimeout(function(){autoReload();}, autoReloadTimer);
+	setTimeout(function(){autoReload();}, autoReloadMultiplier * autoReloadTimer);
+	updateListDownloads();
 	return false;
 };
