@@ -1,6 +1,6 @@
 {
   "name": "cozy-downloader",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Download files from a given URL",
   "displayName": "Downloader",
   "author": "SomeAverageDev",
@@ -15,6 +15,7 @@
     "body-parser": "1.14.2",
     "cozy-notifications-helper": "1.0.2", 
     "cozydb": "0.1.7",
+    "debug": "2.2.0",
     "express": "4.13.3",
     "httpreq": "0.4.16"
   },
@@ -22,7 +23,7 @@
     "nodemon": "1.8.1"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node --optimize_for_size --max_old_space_size=920 --gc_interval=100 server.js",
     "dev": "node_modules/.bin/nodemon server.js --ignore client/"
   },
   "repository": {

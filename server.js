@@ -4,6 +4,7 @@ var cozydb = require('cozydb');
 var express = require('express');
 var app = express();
 
+
 /*
     Configuration section.
 */

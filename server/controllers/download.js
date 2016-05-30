@@ -8,6 +8,8 @@ var User = require('../models/user');
 var CozyInstance = require('../models/cozyinstance');
 var Folder = require('../models/folder');
 
+var debug = require('debug')('downloader');
+
 // HOME Notification Helper
 var NotificationsHelper = require('cozy-notifications-helper');
 var notificationsHelper = new NotificationsHelper('downloader');
@@ -23,7 +25,7 @@ if ( typeof persistentDirectory === 'undefined') {
 }
 
 CozyInstance.first(function (err, instance) {
-	//console.log("domain:",instance);
+	//debug("domain:",instance);
 	//cozyDomain = instance.domain;
 	cozyLocale = instance.locale;
 });
@@ -35,16 +37,16 @@ var defaultFileTag = 'Downloads';
 // CREATE FOLDER IF NEEDED
 Folder.isPresent ( filesFolderName , function(err, isFolderPresent) {
 	if (err) {
-		console.log("Folder.isPresent:err:",err);
+		debug("Folder.isPresent:err:",err);
 	} else if (isFolderPresent) {
-		console.log ("folder is already present in Folders");
+		debug ("folder is already present in Folders");
 	} else {
 		Folder.createNewFolder ( {path: '', name: filesFolderName.substring(1) }, function(err) {
 			if(err) {
 				// ERROR
-				console.log("Folder.createNewFolder:err:",err);
+				debug("Folder.createNewFolder:err:",err);
 			} else {
-				console.log ("Folder created (in Files app) :", filesFolderName);
+				debug ("Folder created (in Files app) :", filesFolderName);
 			}
 		});
 	}
@@ -57,12 +59,12 @@ var storeDownloadInFiles = function (download) {
 	var File = require('../models/file');
 
 	File.isPresent(filesFolderName+'/'+download.filename, function(err, isFilePresent) {
-		console.log("File.isPresent:isFilePresent:", isFilePresent);
+		debug("File.isPresent:isFilePresent:", isFilePresent);
 		if (err) {
-			console.log("File.isPresent:err:",err);
+			debug("File.isPresent:err:",err);
 			return true;//res.sendStatus(200);
 		} else if (isFilePresent) {
-			console.log ("download ",download.pathname," already present in file...");
+			debug ("download ",download.pathname," already present in file...");
 			return true;//res.sendStatus(206);
 		} else {
 
@@ -78,24 +80,24 @@ var storeDownloadInFiles = function (download) {
 				tags: [defaultFileTag],
 				mime: download.mime
 			};
-			//console.log("File.createNewFile:fileData:", fileData);
+			//debug("File.createNewFile:fileData:", fileData);
 
 			File.createNewFile(fileData, download.pathname, function(err) {
 				if(err) {
 					// ERROR
-					console.log("File.createNewFile:err:", err);
+					debug("File.createNewFile:err:", err);
 				} else {
-					console.log ("File.createNewFile:OK:download '",download.pathname,"' stored in files app");
+					debug ("File.createNewFile:OK:download '",download.pathname,"' stored in files app");
 					// destroy the download and local file
 					download.destroy(function (err) {
 						if (download.pathname != null) {
 							try {
 								fs.unlinkSync(download.pathname);
-								console.log('download.destroy:OK:', download.pathname);
+								debug('download.destroy:OK:', download.pathname);
 								return true;//res.sendStatus(200);
 							}
 							catch (err) {
-								console.log("download.destroy:error:", err);
+								debug("download.destroy:error:", err);
 								return false;//res.sendStatus(500);
 							}
 						}
@@ -112,7 +114,7 @@ var storeDownloadInFiles = function (download) {
 var proceedWithDownload = function (download) {
 	// https://github.com/SamDecrock/node-httpreq#download
 
-	console.log("proceedWithDownload:START:", download.url);
+	debug("proceedWithDownload:START:", download.url);
 
 	var httpreq = require('httpreq');
 
@@ -126,11 +128,11 @@ var proceedWithDownload = function (download) {
 	httpreq.download( download.url , download.pathname ,
 		function (err, progress) {
 			if (err) {
-				console.log('ERROR:httpreq.download:progress:',err,progress);
+				debug('ERROR:httpreq.download:progress:',err,progress);
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
-						return console.log("ERROR:httpreq.download:progress:download.updateAttributes", err);
+						return debug("ERROR:httpreq.download:progress:download.updateAttributes", err);
 					} else {
 						// OK
 						return true;
@@ -138,18 +140,18 @@ var proceedWithDownload = function (download) {
 				});
 			}
 			else {
-				newPourcentage = (parseInt(progress.percentage) - (parseInt(progress.percentage) % 5));
-				if (newPourcentage > currentPourcentage && newPourcentage < 90) {
-					console.log("httpreq.download:inProgress:", download.filename, ", pourcentage:", newPourcentage);
+				newPourcentage = (parseInt(progress.percentage) - (parseInt(progress.percentage) % 10));
+				if (newPourcentage > currentPourcentage && newPourcentage < 91) {
+					debug("httpreq.download:inProgress:", download.filename, ", pourcentage:", newPourcentage);
 					currentPourcentage = newPourcentage;
 					if (download.status === 'pending') {
 						download.updateAttributes({ updated: new Date(), status: download.status, filesize: progress.totalsize, fileprogress: progress.currentsize}, function(err) {
 							if(err) {
 								// ERROR
-								return console.log("ERROR:httpreq.download:progress:inProgress:download.updateAttributes",err);
+								return debug("ERROR:httpreq.download:progress:inProgress:download.updateAttributes",err);
 							} else {
 								// OK
-								//console.log("httpreq.download:progress:inProgress:download.updateAttributes:OK");
+								//debug("httpreq.download:progress:inProgress:download.updateAttributes:OK");
 								return true;
 							}
 						});
@@ -157,16 +159,16 @@ var proceedWithDownload = function (download) {
 					}
 				}
 			}
-			//console.log(progress);
+			//debug(progress);
 		},
 		function (err, res) {
 			if (err) {
-				console.log('ERROR:httpreq.download:finished:res:1:',err,res);
+				debug('ERROR:httpreq.download:finished:res:1:',err,res);
 /*
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
-						return console.log("ERROR:httpreq.download:finished:err:download.updateAttributes:err", err);
+						return debug("ERROR:httpreq.download:finished:err:download.updateAttributes:err", err);
 					} else {
 						// OK
 						return true;
@@ -175,27 +177,27 @@ var proceedWithDownload = function (download) {
 */
 			}
 			else {
-				//console.log (res);
+				//debug (res);
 				if (err) {
-					console.log('ERROR:httpreq.download:finished:err:', err);
+					debug('ERROR:httpreq.download:finished:err:', err);
 					download.status = 'error';
 					download.statusMessage=JSON.stringify(err);
 
 				} else if (res.statusCode != 200) {
-					console.log('httpreq.download:finished:OK:statusCode!=200:', res);
+					debug('httpreq.download:finished:OK:statusCode!=200:', res);
 					download.status = 'error';
 					download.statusMessage=JSON.stringify(res);
 
 					// error, delete local file
 					try {
-						console.log('TRY:httpreq.download:finished:fs.unlinkSync:', res.downloadlocation);
+						debug('TRY:httpreq.download:finished:fs.unlinkSync:', res.downloadlocation);
 						fs.unlinkSync(res.downloadlocation);
 					}
 					catch (err) {
-						console.log('ERROR:httpreq.download:finished:fs.unlinkSync:err:', err);
+						debug('ERROR:httpreq.download:finished:fs.unlinkSync:err:', err);
 					}
 				} else {
-					//console.log('OK:httpreq.download:finished:OK:', res);
+					//debug('OK:httpreq.download:finished:OK:', res);
 					// download OK
 					(download.filesize === 0) ? download.filesize = res.headers['content-length'] : function () {
 						var stats = fs.statSync(downloads[i].pathname);
@@ -219,10 +221,10 @@ var proceedWithDownload = function (download) {
 					function(err) {
 						if(err) {
 							// ERROR
-							return console.log("ERROR:httpreq.download:finished:download.updateAttributes",err);
+							return debug("ERROR:httpreq.download:finished:download.updateAttributes",err);
 						} else {
 							// OK
-							//console.log('download.updateAttributes:END:',download);
+							//debug('download.updateAttributes:END:',download);
 							return true;
 						}
 					}
@@ -231,10 +233,10 @@ var proceedWithDownload = function (download) {
 				download.save(function(err) {
 						if(err) {
 							// ERROR
-							return console.log("ERROR:httpreq.download:finished:download.save",err);
+							return debug("ERROR:httpreq.download:finished:download.save",err);
 						} else {
 							// OK
-							//console.log('download.updateAttributes:END:',download);
+							//debug('download.updateAttributes:END:',download);
 							return true;
 						}
 					});
@@ -271,14 +273,14 @@ var proceedWithDownload = function (download) {
 						url: '/'
 					},
 					text: notifyHomeMessage
-				}, console.log());
+				}, debug());
 
 				// EMAIL notification if requested
 				if (download.notify == true) {
 
 					User.getUserInfo(function(err, user) {
 						if (err != null) {
-							console.log(err);
+							debug(err);
 						} else {
 							var mailOptions = {
 								from: 'myCozy <' + user.email || 'cozy@localhost>',
@@ -288,18 +290,18 @@ var proceedWithDownload = function (download) {
 							};
 
 							cozydb.api.sendMailToUser(mailOptions, function(err) {
-								console.log('sent mail notification to cozy user:'+user.email);
+								debug('sent mail notification to cozy user:'+user.email);
 								if (err) {
-									console.log(err);
+									debug(err);
 								}
 							});
 						}
 					});
 
 				}
-				console.log("proceedWithDownload:END:", download.url);
+				debug("proceedWithDownload:END:", download.url);
 			}
-//					console.log(res);
+//					debug(res);
 		}
 	);
 }
@@ -321,12 +323,12 @@ router.post('/downloads/new/', function(req, res, next) {
         if(err) {
 			next (err);
 		} else {
-			//console.log(foundDownload.length);
+			//debug(foundDownload.length);
 			if (foundDownload.length > 0) {
-				//console.log ('SAME URL FOUND:',foundDownload);
+				//debug ('SAME URL FOUND:',foundDownload);
 				return res.status(500).send('this URL is already known !');
 			} else {
-				//console.log ('OK, this is a new URL');
+				//debug ('OK, this is a new URL');
 				// new url > continue to download
 				var urlParsing = require('url');
 				var filename = urlParsing.parse(req.body.url).pathname;
@@ -342,8 +344,8 @@ router.post('/downloads/new/', function(req, res, next) {
 
 				newDownload.pathname = persistentDirectory+'/'+newDownload.filename;
 
-				console.log ('newDownload.pathname:'+newDownload.pathname);
-				console.log ('newDownload.filename:'+newDownload.filename);
+				debug ('newDownload.pathname:'+newDownload.pathname);
+				debug ('newDownload.filename:'+newDownload.filename);
 
 				// saving the object in DB
 				Download.create(newDownload, function(err, download) {
@@ -375,12 +377,12 @@ router.get('/downloads/list', function(req, res, next) {
     Download.request('all', function(err, downloads) {
         if(err) {
             // ERROR
-            console.log(err);
+            debug(err);
 			res.sendStatus(200);
         } else {
 			// OK listing downloads
 			for (var i=0; i < downloads.length; i++) {
-				//console.log('*** checking download : ',downloads[i]);
+				//debug('*** checking download : ',downloads[i]);
 
 				// checking file last modification
 				if (downloads[i].updated && downloads[i].filesize !== downloads[i].fileprogress) {
@@ -390,7 +392,7 @@ router.get('/downloads/list', function(req, res, next) {
 
 					// if last update is > 90s, it could be on error
 					if (lastUpdate > 90000) {
-						console.log("checking last update:",lastUpdate, "change status to error");
+						debug("checking last update:",lastUpdate, "change status to error");
 						downloads[i].status = 'error';
 						downloads[i].statusMessage = "last update is old, download might have been truncated...";
 					}
@@ -413,7 +415,7 @@ router.get('/downloads/list', function(req, res, next) {
 						}
 					}
 					catch (err) {
-						console.log('file does not exists ('+i+'):' , downloads[i].pathname);
+						debug('file does not exists ('+i+'):' , downloads[i].pathname);
 						// file does not exist, update attributes
 						downloads[i].status = 'filenotfound';
 						//downloads[i].fileprogress = 0;
@@ -424,7 +426,7 @@ router.get('/downloads/list', function(req, res, next) {
 				downloads[i].save(function (err) {});
 			}
 
-			//console.log(downloads);
+			//debug(downloads);
             res.status(200).json(downloads);
         }
     });
@@ -445,11 +447,11 @@ router.get('/downloads/retry/:id', function(req, res, next) {
         } else {
 			if (download.pathname != null) {
 				try {
-					console.log('request for delete file:' + download.pathname);
+					debug('request for delete file:' + download.pathname);
 					fs.unlinkSync(download.pathname);
 				}
 				catch (err) {
-					console.log('file delete error:'+err);
+					debug('file delete error:'+err);
 				}
 
 			}
@@ -480,10 +482,10 @@ router.delete('/downloads/delete/:id', function(req, res, next) {
 				if (localFilename != null) {
 					try {
 						fs.unlinkSync(localFilename);
-						console.log('request for delete file:' + localFilename);
+						debug('request for delete file:' + localFilename);
 					}
 					catch (err) {
-						console.log('file delete error:'+err);
+						debug('file delete error:'+err);
 					}
 				}
 			});
@@ -501,15 +503,15 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
     Download.find(req.params.id, function(err, download) {
         if(err) {
 			// ERROR
-	 		console.log('requested download not found in database, id:',err);
+	 		debug('requested download not found in database, id:',err);
 			res.sendStatus(500);
         } else if(!download) {
             // DOC NOT FOUND
-			console.log('requested download not found in database, id:',req.params.id);
+			debug('requested download not found in database, id:',req.params.id);
             res.sendStatus(404);
         } else {
             // CHECKS TO SEND DOWNLOAD TO FILE APP
-			console.log('requested download found');
+			debug('requested download found');
 
 			storeDownloadInFiles(download);
 			res.sendStatus(200);
@@ -522,12 +524,12 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
 *****************************************************/
 router.get('/downloads/folder', function(req, res, next) {
 	localHost = req.protocol + '://' + req.headers.host ; // for futur use
-	console.log("localHost:", localHost);
+	debug("localHost:", localHost);
 
 	Folder.byFullPath ( {key: filesFolderName}, function(err, folders) {
 		if(err) {
 			// ERROR
-			console.log(err);
+			debug(err);
 		} else {
 			if (folders.length > 0) {
 				folderInFilesId = folders[0]._id; // for futur use
@@ -549,12 +551,12 @@ router.get('/downloads/:id', function(req, res, next) {
             next(err);
         } else {
 			// OK
-			console.log("/downloads/:id - trying to send file : ", download.pathname);
+			debug("/downloads/:id - trying to send file : ", download.pathname);
 			try {
 				// check file exists
 				fs.accessSync(download.pathname, fs.F_OK);
 
-				console.log('GOOD : file exists !!');
+				debug('GOOD : file exists !!');
 
 				var options = {
 					dotfiles: 'deny',
@@ -567,11 +569,11 @@ router.get('/downloads/:id', function(req, res, next) {
 				};
 
 				res.sendFile(download.pathname, options, function (err) {
-					console.log('ERROR (sendFile) : ',err);
+					debug('ERROR (sendFile) : ',err);
 					res.sendStatus(404);
 				});
 			} catch (err) {
-				console.log('ERROR : file does not exists !!');
+				debug('ERROR : file does not exists !!');
 				// file does not exist, update attributes
 				res.sendStatus(404);
 			}
