@@ -1,6 +1,7 @@
 // refresh table from http://www.meadow.se/wordpress/refreshing-data-in-jquery-datatables/
 const autoReloadTimer = 1000;
-var autoReloadMultiplier = 20;
+var autoReloadMultiplier = 10;
+var autoReloadValue = 0;
 
 function stringShortener (str, maxSize) {
 	if (typeof maxSize === 'undefined') {
@@ -182,7 +183,7 @@ function updateListDownloads() {
 				if (globalPourcentage > data[i].pourcentage) {
 					globalPourcentage = data[i].pourcentage;
 				}
-
+				console.log("globalPourcentage:", globalPourcentage);
 				var actions = '';
 				actions += '<button type="button" class="btn btn-danger btn-sm" onClick="deleteDownloadHelper(\''+data[i]._id+'\')">Delete</button>&nbsp;';
 				if (data[i].status === 'available') {
@@ -211,15 +212,28 @@ function updateListDownloads() {
 			oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
 			crudTable.fnDraw();
 
-			autoReloadMultiplier = 1+(globalPourcentage/5);
+			if (data.length === 0 || globalPourcentage === 100 ) {
+				autoReloadMultiplier = 60;
+			} else {
+				autoReloadMultiplier = 3+(globalPourcentage/12);
+			}
 		}
+	})
+	.fail(function() {
+		autoReloadMultiplier = 60;
+		updateMessage('Oops, it looks like there is a server error...');
 	});
 	return false;
 };
 
 function autoReload() {
-	updateListDownloads();
-	setTimeout(function(){autoReload();}, autoReloadMultiplier * autoReloadTimer);
+	autoReloadValue++;
+	console.log("autoReloadMultiplier:",autoReloadMultiplier);console.log("autoReloadValue:",autoReloadValue);
+	if (autoReloadValue >= autoReloadMultiplier) {
+		updateListDownloads();
+		autoReloadValue = 0;
+	}
+	setTimeout(function(){autoReload();}, autoReloadTimer);
 	return false;
 };
 
@@ -254,7 +268,7 @@ window.onload = function() {
     initListDownloads();
 	initFilesLink();
 	// auto reload table
-	setTimeout(function(){autoReload();}, autoReloadMultiplier * autoReloadTimer);
+	setTimeout(function(){autoReload();}, autoReloadTimer);
 	updateListDownloads();
 	return false;
 };

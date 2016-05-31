@@ -127,8 +127,9 @@ var proceedWithDownload = function (download) {
 
 	httpreq.download( download.url , download.pathname ,
 		function (err, progress) {
+			//debug("progress:", progress);
 			if (err) {
-				debug('ERROR:httpreq.download:progress:',err,progress);
+				debug('ERROR:httpreq.download:progress:', err, progress);
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
@@ -140,8 +141,8 @@ var proceedWithDownload = function (download) {
 				});
 			}
 			else {
-				newPourcentage = (parseInt(progress.percentage) - (parseInt(progress.percentage) % 10));
-				if (newPourcentage > currentPourcentage && newPourcentage < 91) {
+				newPourcentage = (parseInt(progress.percentage) - (parseInt(progress.percentage) % 5));
+				if (download.filesize !== progress.totalsize || (newPourcentage > currentPourcentage && newPourcentage < 101)) {
 					debug("httpreq.download:inProgress:", download.filename, ", pourcentage:", newPourcentage);
 					currentPourcentage = newPourcentage;
 					if (download.status === 'pending') {
@@ -159,12 +160,12 @@ var proceedWithDownload = function (download) {
 					}
 				}
 			}
-			//debug(progress);
 		},
-		function (err, res) {
+		function (err, result) {
+			debug("result:", result);
 			if (err) {
-				debug('ERROR:httpreq.download:finished:res:1:',err,res);
-/*
+				debug('ERROR:httpreq.download:finished:result:1:',err,result);
+
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
@@ -174,40 +175,46 @@ var proceedWithDownload = function (download) {
 						return true;
 					}
 				});
-*/
+
 			}
 			else {
-				//debug (res);
+				//debug (result);
 				if (err) {
 					debug('ERROR:httpreq.download:finished:err:', err);
 					download.status = 'error';
 					download.statusMessage=JSON.stringify(err);
 
-				} else if (res.statusCode != 200) {
-					debug('httpreq.download:finished:OK:statusCode!=200:', res);
+				} else if (result.statusCode != 200) {
+					debug('httpreq.download:finished:OK:statusCode!=200:', result);
 					download.status = 'error';
-					download.statusMessage=JSON.stringify(res);
+					download.statusMessage=JSON.stringify(result);
 
 					// error, delete local file
 					try {
-						debug('TRY:httpreq.download:finished:fs.unlinkSync:', res.downloadlocation);
-						fs.unlinkSync(res.downloadlocation);
+						debug('TRY:httpreq.download:finished:fs.unlinkSync:', result.downloadlocation);
+						fs.unlinkSync(result.downloadlocation);
 					}
 					catch (err) {
 						debug('ERROR:httpreq.download:finished:fs.unlinkSync:err:', err);
 					}
 				} else {
-					//debug('OK:httpreq.download:finished:OK:', res);
+					//debug('OK:httpreq.download:finished:OK:', result);
 					// download OK
-					(download.filesize === 0) ? download.filesize = res.headers['content-length'] : function () {
+
+					(download.filesize === 0) ? download.filesize = result.headers['content-length'] : function () {
 						var stats = fs.statSync(downloads[i].pathname);
 						return stats['size'];
 					};
 
-					(res.headers['content-length'] === 0) ? download.fileprogress = download.filesize : download.fileprogress = res.headers['content-length'];
-					download.statusMessage=JSON.stringify(res);
+					(result.headers['content-length'] === 0) ? download.fileprogress = download.filesize : download.fileprogress = result.headers['content-length'];
+
+					if (download.filesize < download.fileprogress) {
+						download.filesize = download.fileprogress;
+					}
+
+					download.statusMessage=JSON.stringify(result);
 					download.status = 'available';
-					download.mime = res.headers['content-type'];
+					download.mime = result.headers['content-type'];
 				}
 
 				download.updateAttributes({
@@ -229,18 +236,6 @@ var proceedWithDownload = function (download) {
 						}
 					}
 				);
-/*
-				download.save(function(err) {
-						if(err) {
-							// ERROR
-							return debug("ERROR:httpreq.download:finished:download.save",err);
-						} else {
-							// OK
-							//debug('download.updateAttributes:END:',download);
-							return true;
-						}
-					});
-*/
 
 				// Store in Files
 				if (download.storeinfiles == true) {
@@ -273,7 +268,7 @@ var proceedWithDownload = function (download) {
 						url: '/'
 					},
 					text: notifyHomeMessage
-				}, debug());
+				}, void 0);
 
 				// EMAIL notification if requested
 				if (download.notify == true) {
@@ -301,7 +296,7 @@ var proceedWithDownload = function (download) {
 				}
 				debug("proceedWithDownload:END:", download.url);
 			}
-//					debug(res);
+
 		}
 	);
 }
@@ -311,6 +306,7 @@ var proceedWithDownload = function (download) {
 *	Create a new download
 *****************************************************/
 router.post('/downloads/new/', function(req, res, next) {
+	var path = require ('path');
 
 	if (req.body.url === '' || typeof (req.body.url) === 'undefined') {
 		return res.status(500).send('the url parameter is empty');
@@ -330,22 +326,57 @@ router.post('/downloads/new/', function(req, res, next) {
 			} else {
 				//debug ('OK, this is a new URL');
 				// new url > continue to download
+				// Managing filename
+				var fullFilename = null;
+				var filenameIsOK = false;
+				var fileNum=0;
 				var urlParsing = require('url');
 				var filename = urlParsing.parse(req.body.url).pathname;
+
 				filename = filename.substring(filename.lastIndexOf('/')+1);
 
+				if (filename.length === 0) {
+					var d = new Date();
+					filename = 'unknown-'+d.getFullYear()+(d.getMonth()+1)+d.getDate()+'-'+d.getHours()+d.getMinutes()+d.getSeconds()+'.dat';
+				}
+
 				model = req.body.download ? JSON.parse(req.body.download) : req.body;
+
+
+				while (!filenameIsOK) {
+					try {
+						// check file exists
+						fullFilename = persistentDirectory+'/'+filename;
+						fs.accessSync(fullFilename, fs.F_OK);
+
+						// a file with the same name already exists, try to increment
+						fileNum++;
+						var ext = path.extname(filename);
+						var basename = path.basename(filename, ext);
+
+						debug ("ext:", ext);
+						debug ("basename", basename);
+
+						filename = basename + '-' + fileNum + ext;
+
+					}
+					catch (err) {
+						// the file does not exist yet, which is good
+						filenameIsOK = true;
+					}
+				}
+
 				newDownload = new Download(model);
 
 				newDownload.filename = filename;
+				newDownload.pathname = fullFilename;
 				newDownload.protocol = urlParsing.parse(req.body.url).protocol;
 				newDownload.created = new Date();
 				newDownload.status = 'pending';
 
-				newDownload.pathname = persistentDirectory+'/'+newDownload.filename;
+				debug ('newDownload.pathname:', newDownload.pathname);
+				debug ('newDownload.filename:', newDownload.filename);
 
-				debug ('newDownload.pathname:'+newDownload.pathname);
-				debug ('newDownload.filename:'+newDownload.filename);
 
 				// saving the object in DB
 				Download.create(newDownload, function(err, download) {
@@ -363,6 +394,8 @@ router.post('/downloads/new/', function(req, res, next) {
 						res.sendStatus(200);
 				   }
 				});
+
+
 			}
 		}
 	});
@@ -385,14 +418,14 @@ router.get('/downloads/list', function(req, res, next) {
 				//debug('*** checking download : ',downloads[i]);
 
 				// checking file last modification
-				if (downloads[i].updated && downloads[i].filesize !== downloads[i].fileprogress) {
+				var lastUpdate = (new Date()-(downloads[i].updated ? downloads[i].updated : downloads[i].created) );
 
-					var lastUpdate = (new Date()-downloads[i].updated);
-
+				if (downloads[i].filesize !== downloads[i].fileprogress || (downloads[i].fileprogress === 0 && downloads[i].filesize === 0 ) ) {
+					debug("checking last update:",lastUpdate);
 
 					// if last update is > 90s, it could be on error
 					if (lastUpdate > 90000) {
-						debug("checking last update:",lastUpdate, "change status to error");
+						debug("change status to error:", downloads[i].pathname);
 						downloads[i].status = 'error';
 						downloads[i].statusMessage = "last update is old, download might have been truncated...";
 					}
@@ -408,10 +441,19 @@ router.get('/downloads/list', function(req, res, next) {
 						downloads[i].fileprogress = stats['size'];
 						if (downloads[i].filesize === 0 && stats['size'] > 0) {
 							downloads[i].filesize = stats['size'];
+							debug("change filesize to:", downloads[i].filesize);
 						}
-						downloads[i].status = 'error';
-						if (downloads[i].filesize > 0 && downloads[i].fileprogress === downloads[i].filesize) {
-							downloads[i].status = 'available';
+
+						if (downloads[i].filesize < downloads[i].fileprogress) {
+							downloads[i].filesize = downloads[i].fileprogress;
+						}
+
+						if (downloads[i].status !== 'available') {
+							downloads[i].status = 'error';
+							if (downloads[i].filesize > 0 && downloads[i].fileprogress === downloads[i].filesize) {
+								downloads[i].status = 'available';
+								debug("change status to available:", downloads[i].pathname);
+							}
 						}
 					}
 					catch (err) {
@@ -423,7 +465,11 @@ router.get('/downloads/list', function(req, res, next) {
 				}
 
 				// saving attributes
-				downloads[i].save(function (err) {});
+				downloads[i].save(function (err) {
+					if (err) {
+						debug ('downloads['+i+'].save:', err);
+					}
+				});
 			}
 
 			//debug(downloads);
