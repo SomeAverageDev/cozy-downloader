@@ -34,6 +34,21 @@ CozyInstance.first(function (err, instance) {
 var filesFolderName = '/Downloads';
 var defaultFileTag = 'Downloads';
 
+// Check il a file exists. Works in both Node 0.10 and greater
+var fileExists = function (path) {
+  if (typeof fs.accessSync === 'function') {
+    try {
+      fs.accessSync(path, fs.F_OK);
+      return true;
+    } catch (e) {
+      return false;
+    }
+
+  } else {
+    return fs.existsSync(path);
+  }
+}
+
 // CREATE FOLDER IF NEEDED
 Folder.isPresent ( filesFolderName , function(err, isFolderPresent) {
 	if (err) {
@@ -344,11 +359,8 @@ router.post('/downloads/new/', function(req, res, next) {
 
 
 				while (!filenameIsOK) {
-					try {
-						// check file exists
-						fullFilename = persistentDirectory+'/'+filename;
-						fs.accessSync(fullFilename, fs.F_OK);
-
+					fullFilename = persistentDirectory + '/' + filename;
+          if (fileExists(fullFilename)) {
 						// a file with the same name already exists, try to increment
 						fileNum++;
 						var ext = path.extname(filename);
@@ -359,8 +371,7 @@ router.post('/downloads/new/', function(req, res, next) {
 
 						filename = basename + '-' + fileNum + ext;
 
-					}
-					catch (err) {
+					} else {
 						// the file does not exist yet, which is good
 						filenameIsOK = true;
 					}
@@ -434,8 +445,7 @@ router.get('/downloads/list', function(req, res, next) {
 				if (downloads[i].status !== 'pending') {
 					try {
 						// check file exists
-						fs.accessSync(downloads[i].pathname, fs.F_OK);
-
+					if (fileExists(downloads[i].pathname, fs.F_OK)) {
 						// file is present, checking size
 						var stats = fs.statSync(downloads[i].pathname);
 						downloads[i].fileprogress = stats['size'];
@@ -455,8 +465,7 @@ router.get('/downloads/list', function(req, res, next) {
 								debug("change status to available:", downloads[i].pathname);
 							}
 						}
-					}
-					catch (err) {
+					} else {
 						debug('file does not exists ('+i+'):' , downloads[i].pathname);
 						// file does not exist, update attributes
 						downloads[i].status = 'filenotfound';
@@ -598,9 +607,8 @@ router.get('/downloads/:id', function(req, res, next) {
         } else {
 			// OK
 			debug("/downloads/:id - trying to send file : ", download.pathname);
-			try {
-				// check file exists
-				fs.accessSync(download.pathname, fs.F_OK);
+      // check file exists
+			if (fileExists(download.pathname, fs.F_OK)) {
 
 				debug('GOOD : file exists !!');
 
@@ -618,7 +626,7 @@ router.get('/downloads/:id', function(req, res, next) {
 					debug('ERROR (sendFile) : ',err);
 					res.sendStatus(404);
 				});
-			} catch (err) {
+			} else {
 				debug('ERROR : file does not exists !!');
 				// file does not exist, update attributes
 				res.sendStatus(404);
