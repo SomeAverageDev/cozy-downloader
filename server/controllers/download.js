@@ -35,10 +35,11 @@ var filesFolderName = '/Downloads';
 var defaultFileTag = 'Downloads';
 
 // Check il a file exists. Works in both Node 0.10 and greater
-var fileExistsSync = function (path) {
+var fileExistsSync = function (path, mode) {
   if (typeof fs.accessSync === 'function') {
+	if (typeof(mode)==='undefined') mode = fs.F_OK;
     try {
-      fs.accessSync(path, fs.F_OK);
+      fs.accessSync(path, mode);
       return true;
     } catch (e) {
       return false;
