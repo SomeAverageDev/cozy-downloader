@@ -1,18 +1,20 @@
 # Description
 
-Cozy Download is a cozy app that enables you to download a file from the internet to your cozy.
+Downloader is a Cozy Cloud App that allows you to download a file from the internet to your Cozy.
 The idea is to retrieve a file on your cozy while you are at work or on a public computer.
 
 It is now possible to save your downloads in the "Files" app.
 
-You can fin this app on the official Cozy Cloud App Store !
+You can find this app on the official Cozy Cloud App Store !
 
 ** The app is functionnal but is still under development, feel free to comment or share your good ideas ! **
 
 
 # Install on your cozy instance
 
-In your cozy home, choose "Add", use the GIT URL https://github.com/SomeAverageDev/cozy-downloader at the bottom of the page
+In your Cozy home, choose "Add", use the GIT URL https://github.com/SomeAverageDev/cozy-downloader at the bottom of the page
+or
+You can find this app on the official Cozy Cloud App Store available from your Cozy Home !
 
 
 # Clone and Run on your dev cozy instance
