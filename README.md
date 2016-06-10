@@ -3,7 +3,11 @@
 Cozy Download is a cozy app that enables you to download a file from the internet to your cozy.
 The idea is to retrieve a file on your cozy while you are at work or on a public computer.
 
-The app is functionnal but is still under development, feel free to comment or share your good ideas !
+It is now possible to save your downloads in the "Files" app.
+
+You can fin this app on the official Cozy Cloud App Store !
+
+** The app is functionnal but is still under development, feel free to comment or share your good ideas ! **
 
 
 # Install on your cozy instance
