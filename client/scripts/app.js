@@ -20,7 +20,7 @@ function stringShortener (str, maxSize) {
 };
 
 function retryDownloadHelper(id) {
-	updateMessage('Retry request submitted...');
+	updateMessage(t('retry-request'));
 
 	$.ajax({
 		'method': 'GET',
@@ -28,19 +28,19 @@ function retryDownloadHelper(id) {
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
 			if (xhr.status !== 200) {
-				updateMessage('Retry request error');
+				updateMessage(t('retry-request-error'));
 			} else {
-				updateMessage('Retry request successful !');
+				updateMessage(t('retry-request-success'));
 			}
 			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
 		}
 	});
-	return false;
+	return true;
 };
 
 function deleteDownloadHelper (id) {
-	updateMessage('Delete request submitted...');
+	updateMessage(t('delete-request'));
 
 	$.ajax({
 		'method': 'DELETE',
@@ -48,68 +48,68 @@ function deleteDownloadHelper (id) {
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
 			if (xhr.status !== 200) {
-				updateMessage('Delete request error...');
+				updateMessage(t('delete-request-error'));
 			} else {
-				updateMessage('Delete request successful !');
+				updateMessage(t('delete-request-success'));
 			}
 			setTimeout(function(){updateListDownloads();}, 300);
 			return true;
 		}
 	});
-	return false;
+	return true;
 };
 
 function retrieveDownloadHelper (id) {
 	window.location = 'downloads/'+id;
-	return false;
+	return true;
 };
 
 function storeToFileDownloadHelper (id) {
-	updateMessage('Store in File request submitted...');
+	updateMessage(t('store-request'));
 
 	$.ajax({
 		'method': 'PUT',
 		'url': 'downloads/tofile/'+id,
 		'complete': function(xhr, textStatus) {
 			//console.log(xhr);
+
 			if (xhr.status == 206) {
-				updateMessage('This download is already stored in Files !');
+				updateMessage(t('store-request-exists'));
 			} else if (xhr.status !== 200) {
-				updateMessage('Store in File app request error...');
+				updateMessage(t('store-request-error'));
 			} else {
-				updateMessage('Store in File app request successful !');
-				autoReloadMultiplier = 1;
+				updateMessage(t('store-request-success'));
 			}
-			setTimeout(function(){updateListDownloads();}, 1000);
+      autoReloadMultiplier = 1;
+			//setTimeout(function(){updateListDownloads();}, 300);
 			return true;
 		}
 	});
-	return false;
+	return true;
 };
 
 function initListDownloads() {
-    var crudTable = $('#crud-list-table').dataTable({
-        "bPaginate": false,
-        "bFilter": false,
-        "bInfo": false,
-		"retrieve": true,
-		"bJQueryUI": true,
-		"sAjaxSource": 'downloads/list',
-		"language": {
-			"emptyTable": "You have not downloaded anything yet !"
-			}
-		}
-	);
-	return false;
+  var crudTable = $('#crud-list-table').dataTable({
+    "bPaginate": false,
+    "bFilter": false,
+    "bInfo": false,
+    "retrieve": true,
+    "bJQueryUI": true,
+    "sAjaxSource": 'downloads/list',
+    "language": {
+      "emptyTable": t("table-empty")
+    }
+  });
+	return true;
 };
 
 function createDownloadHandler() {
-    var $url = $('#create-url');
-    var $notify = $('#create-notify');
-    var $storeInFiles = $('#create-storeinfiles');
-    var $button = $('#new-url-form button');
+  var $url = $('#create-url');
+  var $notify = $('#create-notify');
+  var $storeInFiles = $('#create-storeinfiles');
+  var $button = $('#new-url-form button');
 
-    function onSubmit() {
+  function onSubmit() {
 
 		var formData = {
 			'notify': false,
@@ -117,50 +117,50 @@ function createDownloadHandler() {
 		};
 
 		// input validation
-        if ($url.val() && $url.val().length > 0) {
-            formData.url = $url.val();
-        } else {
-			// empty URL, no need to submit the form
-			return false;
-        }
+    if ($url.val() && $url.val().length > 0) {
+        formData.url = $url.val();
+    } else {
+      // empty URL, no need to submit the form
+      return false;
+    }
 
-		updateMessage('Download request submitted...');
+		updateMessage(t('download-request'));
 
-        if ($notify[0].checked) {
-            formData.notify = true;
-        }
-        if ($storeInFiles[0].checked) {
-            formData.storeinfiles = true;
-        }
+    if ($notify[0].checked) {
+        formData.notify = true;
+    }
+    if ($storeInFiles[0].checked) {
+        formData.storeinfiles = true;
+    }
 
 		// data json formating
 		formData = JSON.stringify(formData, null, 2);
 
 		autoReloadMultiplier = 1;
 
-        $.ajax({
-            'method': 'POST',
-            'url': 'downloads/new',
-            'data': formData,
-            'headers': {
-                'content-type': 'application/json'
-            },
+    $.ajax({
+      'method': 'POST',
+      'url': 'downloads/new',
+      'data': formData,
+      'headers': {
+        'content-type': 'application/json'
+      },
 			'complete': function(xhr, textStatus) {
 				if (xhr.status !== 200) {
-					updateMessage('Download request error : '+xhr.responseText);
-                } else {
-					updateMessage('Download request successful !');
-                }
+					updateMessage(t('download-request-error')+xhr.responseText);
+        } else {
+					updateMessage(t('download-request-success'));
+        }
 				setTimeout(function(){updateListDownloads();}, 300);
 			}
-        });
+    });
 
 		$('#new-url-form')[0].reset();
 		return true;
-    }
+  }
 
-    $button.click(onSubmit);
-	return false;
+  $button.click(onSubmit);
+	return true;
 };
 
 function updateListDownloads() {
@@ -183,14 +183,14 @@ function updateListDownloads() {
 				if (globalPourcentage > data[i].pourcentage) {
 					globalPourcentage = data[i].pourcentage;
 				}
-				console.log("globalPourcentage:", globalPourcentage);
+				//console.log("globalPourcentage:", globalPourcentage);
 				var actions = '';
-				actions += '<button type="button" class="btn btn-danger btn-sm" onClick="deleteDownloadHelper(\''+data[i]._id+'\')">Delete</button>&nbsp;';
+				actions += '<button type="button" class="btn btn-danger btn-sm" onClick="deleteDownloadHelper(\''+data[i]._id+'\')">'+t('button-delete')+'</button>&nbsp;';
 				if (data[i].status === 'available') {
-					actions += '<button type="button" class="btn btn-success btn-sm" onClick="retrieveDownloadHelper(\''+data[i]._id+'\')">Retrieve</button>&nbsp;';
-					actions += '<button type="button" class="btn btn-success btn-sm" onClick="storeToFileDownloadHelper(\''+data[i]._id+'\')">Move to Files</button>&nbsp;';
+					actions += '<button type="button" class="btn btn-success btn-sm" onClick="retrieveDownloadHelper(\''+data[i]._id+'\')">'+t('button-retrieve')+'</button>&nbsp;';
+					actions += '<button type="button" class="btn btn-success btn-sm" onClick="storeToFileDownloadHelper(\''+data[i]._id+'\')">'+t('button-move')+'</button>&nbsp;';
 				} else if (data[i].status !== 'pending') {
-					actions += '<button type="button" class="btn btn-info btn-sm" onClick="retryDownloadHelper(\''+data[i]._id+'\')">Retry</button>';
+					actions += '<button type="button" class="btn btn-info btn-sm" onClick="retryDownloadHelper(\''+data[i]._id+'\')">'+t('button-retry')+'</button>';
 				}
 
 				crudTable.fnAddData(
@@ -213,28 +213,28 @@ function updateListDownloads() {
 			crudTable.fnDraw();
 
 			if (data.length === 0 || globalPourcentage === 100 ) {
-				autoReloadMultiplier = 60;
+				autoReloadMultiplier++;
 			} else {
-				autoReloadMultiplier = 3+(globalPourcentage/12);
+				autoReloadMultiplier = 2;//+(globalPourcentage/12);
 			}
 		}
 	})
 	.fail(function() {
 		autoReloadMultiplier = 60;
-		updateMessage('Oops, it looks like there is a server error...');
+		updateMessage(t('server-error'));
 	});
-	return false;
+	return true;
 };
 
 function autoReload() {
 	autoReloadValue++;
-	console.log("autoReloadMultiplier:",autoReloadMultiplier);console.log("autoReloadValue:",autoReloadValue);
+	//console.log("autoReloadMultiplier:",autoReloadMultiplier);console.log("autoReloadValue:",autoReloadValue);
 	if (autoReloadValue >= autoReloadMultiplier) {
 		updateListDownloads();
 		autoReloadValue = 0;
 	}
 	setTimeout(function(){autoReload();}, autoReloadTimer);
-	return false;
+	return true;
 };
 
 function initFilesLink () {
@@ -243,7 +243,7 @@ function initFilesLink () {
 	$.getJSON('downloads/folder', null, function( data ) {
 		$link.attr("href", "/#apps/files/folders/"+data[0]._id);
 	});
-	return false;
+	return true;
 }
 
 function updateMessage (message) {
@@ -259,14 +259,16 @@ function hideMessage () {
 }
 
 window.onload = function() {
-	$("form").on('submit', function (e) {
-		// remove default submit event
-		e.preventDefault();
-	});
+  // remove default submit event
+  $("form").on('submit', function (e) {
+    e.preventDefault();
+  });
 
-    createDownloadHandler();
-    initListDownloads();
+  // start the show
+  createDownloadHandler();
+  initListDownloads();
 	initFilesLink();
+
 	// auto reload table
 	setTimeout(function(){autoReload();}, autoReloadTimer);
 	updateListDownloads();

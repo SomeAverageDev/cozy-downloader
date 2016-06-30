@@ -92,7 +92,6 @@ var storeDownloadInFiles = function (download) {
 				path: filesFolderName,
 				creationDate: now.toISOString(),
 				lastModification: now.toISOString(),
-				"class": 'document',
 				tags: [defaultFileTag],
 				mime: download.mime
 			};
@@ -560,23 +559,23 @@ router.delete('/downloads/delete/:id', function(req, res, next) {
 *****************************************************/
 router.put('/downloads/tofile/:id', function(req, res, next) {
 
-    Download.find(req.params.id, function(err, download) {
-        if(err) {
-			// ERROR
-	 		debug('requested download not found in database, id:',err);
-			res.sendStatus(500);
-        } else if(!download) {
-            // DOC NOT FOUND
-			debug('requested download not found in database, id:',req.params.id);
-            res.sendStatus(404);
-        } else {
-            // CHECKS TO SEND DOWNLOAD TO FILE APP
-			debug('requested download found');
+  Download.find(req.params.id, function(err, download) {
+      if(err) {
+    // ERROR
+    debug('requested download not found in database, id:',err);
+    res.sendStatus(500);
+      } else if(!download) {
+          // DOC NOT FOUND
+    debug('requested download not found in database, id:',req.params.id);
+          res.sendStatus(404);
+      } else {
+          // CHECKS TO SEND DOWNLOAD TO FILE APP
+    debug('requested download found');
 
-			storeDownloadInFiles(download);
-			res.sendStatus(200);
-        }
-    });
+    storeDownloadInFiles(download);
+    res.sendStatus(200);
+    }
+  });
 });
 
 /*****************************************************
@@ -644,32 +643,41 @@ router.get('/downloads/:id', function(req, res, next) {
 *	Update an existing download
 *****************************************************/
 router.put('/downloads/:id', function(req, res, next) {
-    /*
-        First, get the document we want to update.
-    */
-    Download.find(req.params.id, function(err, download) {
+  /*
+  First, get the document we want to update.
+  */
+  Download.find(req.params.id, function(err, download) {
+    if(err) {
+      // ERROR
+      next(err);
+    } else if(!download) {
+      // DOC NOT FOUND
+      res.sendStatus(404);
+    } else {
+      // UPDATE THE OBJECT
+      download.updateAttributes(req.body, function(err, download) {
         if(err) {
-            // ERROR
-            next(err);
-        } else if(!download) {
-            // DOC NOT FOUND
-            res.sendStatus(404);
+          // ERROR
+          next(err);
         } else {
-            // UPDATE THE OBJECT
-            download.updateAttributes(req.body, function(err, download) {
-				if(err) {
-					// ERROR
-                    next(err);
-                } else {
-					// OK
-                    res.status(200).send(download);
-                }
-            });
+        // OK
+          res.status(200).send(download);
         }
-
-    });
+      });
+    }
+  });
 });
 
+/*****************************************************
+*	Fetch an existing download by its ID
+*****************************************************/
+router.get('/locale', function(req, res, next) {
+  var locale = require ("../../client/app/locales/" + cozyLocale);
+  res.status(200).send({
+    "locale": cozyLocale,
+    "phrases": locale,
+  });
+});
 
 // Export the router instance to make it available from other files.
 module.exports = router;
