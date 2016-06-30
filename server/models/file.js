@@ -16,13 +16,39 @@ module.exports = File = (function(superClass) {
     id: String,
     name: String,
     path: String,
-	creationDate: String,
+    creationDate: String,
     lastModification: String,
-	binary: Object,
-	mime: String,
-	size: Number,
-	tags: [String],
+    binary: Object,
+    mime: String,
+    size: Number,
+    tags: [String],
     "class": String
+  };
+
+  File.getFileClass = function(mime) {
+    var fileClass = "file";
+    if (mime != null) {
+      switch (mime.split('/')[0]) {
+        case 'image':
+          fileClass = "image";
+          break;
+        case 'application':
+          fileClass = "document";
+          break;
+        case 'text':
+          fileClass = "document";
+          break;
+        case 'audio':
+          fileClass = "music";
+          break;
+        case 'video':
+          fileClass = "video";
+          break;
+        default:
+          fileClass = "file";
+      }
+    }
+    return fileClass;
   };
 
 	File.byFullPath = function(params, callback) {
@@ -43,6 +69,8 @@ module.exports = File = (function(superClass) {
 
 	File.createNewFile = function(data, file, callback) {
 	  var attachBinary;
+
+    data.class = this.getFileClass(data.mime);
 
 	  attachBinary = function(newFile) {
 		file.path = data.name;
