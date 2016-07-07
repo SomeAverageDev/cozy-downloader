@@ -164,7 +164,7 @@ function createDownloadHandler() {
 };
 
 function updateListDownloads() {
-	var globalPourcentage = 100;
+	var globalPourcentage = -1;
 
 	$.getJSON('downloads/list', null, function( data )
 	{
@@ -183,7 +183,6 @@ function updateListDownloads() {
 				if (globalPourcentage > data[i].pourcentage) {
 					globalPourcentage = data[i].pourcentage;
 				}
-				//console.log("globalPourcentage:", globalPourcentage);
 				var actions = '';
 				actions += '<button type="button" class="btn btn-danger btn-sm" onClick="deleteDownloadHelper(\''+data[i]._id+'\')">'+t('button-delete')+'</button>&nbsp;';
 				if (data[i].status === 'available') {
@@ -208,13 +207,14 @@ function updateListDownloads() {
 					]
 				);
 			}
+			//console.log("globalPourcentage:", globalPourcentage);
 
 			oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
 			crudTable.fnDraw();
 
-			if (data.length === 0 || globalPourcentage === 100 ) {
-				autoReloadMultiplier++;
-			} else {
+			if (data.length === 0 || globalPourcentage === 100 || globalPourcentage < 0 ) {
+				autoReloadMultiplier = 30;
+      } else {
 				autoReloadMultiplier = 2;//+(globalPourcentage/12);
 			}
 		}
