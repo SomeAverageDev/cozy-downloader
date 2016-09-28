@@ -1,0 +1,21 @@
+doctype
+html(style='height:100%;')
+  head
+    meta(name='viewport', content='width=device-width')
+    meta(http-equiv='Content-Type', content='text/html', charset='UTF-8')
+
+  body(style='height:100%; margin:20;')
+    img(src='cid:cozy-logo' width='63' height='48' style='padding: 12px 0; margin: auto;')
+
+    br
+    |Your file&nbsp;
+    a(href='#{downloadUrl}') #{fileName}
+    |&nbsp;has been downloaded successfully !
+    br
+    |It has been downloaded from the URL&nbsp;
+    a(href='#{url}') #{url}
+    br
+    |Find it on&nbsp;
+    a(href='#{localHost}') your cozy
+    |&nbsp;!
+
