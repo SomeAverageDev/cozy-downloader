@@ -7,8 +7,11 @@ var Download = require('../models/download');
 var User = require('../models/user');
 var CozyInstance = require('../models/cozyinstance');
 var Folder = require('../models/folder');
+var mailHandler = require('../libs/mail_handler');
 
 var debug = require('debug')('downloader');
+
+const localization = require('../libs/localization_manager');
 
 // HOME Notification Helper
 var NotificationsHelper = require('cozy-notifications-helper');
@@ -28,7 +31,10 @@ CozyInstance.first(function (err, instance) {
 	//debug("domain:",instance);
 	//cozyDomain = instance.domain;
 	cozyLocale = instance.locale;
+  debug ('cozyLocale:', cozyLocale);
 });
+
+localization.updateLocale(cozyLocale);
 
 // FILES and FOLDERS apps options
 var filesFolderName = '/Downloads';
@@ -37,7 +43,7 @@ var defaultFileTag = 'Downloads';
 // Check il a file exists. Works in both Node 0.10 and greater
 var fileExistsSync = function (path, mode) {
   if (typeof fs.accessSync === 'function') {
-	if (typeof(mode)==='undefined') mode = fs.F_OK;
+  if (typeof(mode)==='undefined') mode = fs.F_OK;
     try {
       fs.accessSync(path, mode);
       return true;
@@ -48,6 +54,21 @@ var fileExistsSync = function (path, mode) {
   } else {
     return fs.existsSync(path);
   }
+}
+
+// DELETE LOCAL FILE
+var fileDeleteFromFsSync = function (path, debugStr) {
+  if (fileExistsSync(path)) {
+    try {
+      debug('fileDeleteFromFsSync:try:' + debugStr, path);
+      fs.unlinkSync(path);
+    }
+    catch (err) {
+      debug('fileDeleteFromFsSync:err:' + debugStr, err);
+      return false;
+    }
+  }
+  return true;
 }
 
 // CREATE FOLDER IF NEEDED
@@ -106,15 +127,7 @@ var storeDownloadInFiles = function (download) {
 					// destroy the download and local file
 					download.destroy(function (err) {
 						if (download.pathname != null) {
-							try {
-								fs.unlinkSync(download.pathname);
-								debug('download.destroy:OK:', download.pathname);
-								return true;//res.sendStatus(200);
-							}
-							catch (err) {
-								debug("download.destroy:error:", err);
-								return false;//res.sendStatus(500);
-							}
+              return fileDeleteFromFsSync (download.pathname, 'download.destroy');
 						}
 					});
 				}
@@ -145,6 +158,9 @@ var proceedWithDownload = function (download) {
 			//debug("progress:", progress);
 			if (err) {
 				debug('ERROR:httpreq.download:progress:', err, progress);
+        // error, delete local file
+        fileDeleteFromFsSync(download.pathname, 'httpreq.download:progress:fs.unlinkSync:');
+        // update object
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
@@ -181,6 +197,10 @@ var proceedWithDownload = function (download) {
 			if (err) {
 				debug('ERROR:httpreq.download:finished:result:1:',err,result);
 
+        // delete local file
+        fileDeleteFromFsSync(download.pathname, 'httpreq.download:result:fs.unlinkSync:');
+
+        // update object
 				download.updateAttributes({updated: new Date(),statusMessage: JSON.stringify(err), status: 'error'}, function(err) {
 					if(err) {
 						// ERROR
@@ -204,20 +224,14 @@ var proceedWithDownload = function (download) {
 					download.status = 'error';
 					download.statusMessage=JSON.stringify(result);
 
-					// error, delete local file
-					try {
-						debug('TRY:httpreq.download:finished:fs.unlinkSync:', result.downloadlocation);
-						fs.unlinkSync(result.downloadlocation);
-					}
-					catch (err) {
-						debug('ERROR:httpreq.download:finished:fs.unlinkSync:err:', err);
-					}
+          // error, delete local file
+          fileDeleteFromFsSync(result.downloadlocation, 'httpreq.download:finished:fs.unlinkSync:');
 				} else {
 					//debug('OK:httpreq.download:finished:OK:', result);
 					// download OK
 
 					(download.filesize === 0) ? download.filesize = result.headers['content-length'] : function () {
-						var stats = fs.statSync(downloads[i].pathname);
+						var stats = fs.statSync(download.pathname);
 						return stats['size'];
 					};
 
@@ -258,6 +272,37 @@ var proceedWithDownload = function (download) {
 				}
 
 				// HOME notification
+				notifyHomeMessage = 'Your file ['+download.filename+'] has been downloaded';
+				notificationsHelper.createOrUpdatePersistent('notify-downloader-new', {
+					resource: {
+						app: 'downloader',
+						url: '/'
+					},
+					text: notifyHomeMessage
+				}, void 0);
+
+				// EMAIL notification if requested
+				if (download.notify == true) {
+
+          var mailTemplate = 'mail_download';
+          var downloadUrl = localHost+'/#apps/downloader/';
+          if (download.status !== 'error') {
+            if (download.storeinfiles) {
+              downloadUrl = localHost+'/#apps/files/folders/'+folderInFilesId;
+            } else {
+            }
+          } else {
+            mailTemplate = 'mail_download_error';
+          }
+
+          mailHandler.sendDownloadNotification (mailTemplate, downloadUrl, download.filename, download.url, localHost, folderInFilesId, function(err) {
+            debug('sent mail notification to cozy user');
+          });
+
+        }
+
+/*
+				// HOME notification
 				var notifyMailMessage, notifyHomeMessage, notifyTitle;
 
 				if (download.status !== 'error') {
@@ -293,7 +338,7 @@ var proceedWithDownload = function (download) {
 							debug(err);
 						} else {
 							var mailOptions = {
-								from: 'myCozy <' + user.email || 'cozy@localhost>',
+								from: 'myCozy <' + (user.email || 'cozy@localhost') + '>',
 								subject: notifyTitle,
 								content: notifyMailMessage,
 								html: '<html><body>Hello ' + user.name + '<br /><br />' + notifyMailMessage + '</body></html>',
@@ -309,7 +354,8 @@ var proceedWithDownload = function (download) {
 					});
 
 				}
-				debug("proceedWithDownload:END:", download.url);
+*/
+  			debug("proceedWithDownload:END:", download.url);
 			}
 
 		}
@@ -496,29 +542,22 @@ router.get('/downloads/list', function(req, res, next) {
 *****************************************************/
 router.get('/downloads/retry/:id', function(req, res, next) {
 
-    Download.find(req.params.id, function(err, download) {
-        if(err) {
-            // ERROR
-            next(err);
-        } else if(!download) {
-            // DOC NOT FOUND
-            res.sendStatus(404);
-        } else {
-			if (download.pathname != null) {
-				try {
-					debug('request for delete file:' + download.pathname);
-					fs.unlinkSync(download.pathname);
-				}
-				catch (err) {
-					debug('file delete error:'+err);
-				}
-
-			}
-			// RETRY
-			proceedWithDownload(download);
-			res.sendStatus(200);
-		}
-	});
+  Download.find(req.params.id, function(err, download) {
+    if (err) {
+      // ERROR
+      next(err);
+    } else if (!download) {
+      // DOC NOT FOUND
+      res.sendStatus(404);
+    } else {
+      if (download.pathname != null) {
+        fileDeleteFromFsSync(download.pathname, 'downloads:retry:'+req.params.id);
+      }
+      // RETRY
+      proceedWithDownload(download);
+      res.sendStatus(200);
+    }
+  });
 
 });
 
@@ -527,30 +566,24 @@ router.get('/downloads/retry/:id', function(req, res, next) {
 *****************************************************/
 router.delete('/downloads/delete/:id', function(req, res, next) {
 
-    Download.find(req.params.id, function(err, download) {
-        if(err) {
-            // ERROR
-            next(err);
-        } else if(!download) {
-            // DOC NOT FOUND
-            res.sendStatus(404);
-        } else {
-			var localFilename = download.pathname;
+  Download.find(req.params.id, function(err, download) {
+    if (err) {
+        // ERROR
+        next(err);
+    } else if (!download) {
+        // DOC NOT FOUND
+        res.sendStatus(404);
+    } else {
+      var localFilename = download.pathname;
 
-			download.destroy(function (err) {
-				if (localFilename != null) {
-					try {
-						fs.unlinkSync(localFilename);
-						debug('request for delete file:' + localFilename);
-					}
-					catch (err) {
-						debug('file delete error:'+err);
-					}
-				}
-			});
-			res.sendStatus(200);
-		}
-	});
+      download.destroy(function (err) {
+        if (localFilename != null) {
+          return fileDeleteFromFsSync(localFilename, 'downloads:delete:'+req.params.id);
+        }
+      });
+      res.sendStatus(200);
+    }
+  });
 
 });
 
@@ -560,20 +593,20 @@ router.delete('/downloads/delete/:id', function(req, res, next) {
 router.put('/downloads/tofile/:id', function(req, res, next) {
 
   Download.find(req.params.id, function(err, download) {
-      if(err) {
-    // ERROR
-    debug('requested download not found in database, id:',err);
-    res.sendStatus(500);
-      } else if(!download) {
-          // DOC NOT FOUND
-    debug('requested download not found in database, id:',req.params.id);
-          res.sendStatus(404);
-      } else {
-          // CHECKS TO SEND DOWNLOAD TO FILE APP
-    debug('requested download found');
+    if(err) {
+      // ERROR
+      debug('requested download not found in database, id:',err);
+      res.sendStatus(500);
+    } else if(!download) {
+      // DOC NOT FOUND
+      debug('requested download not found in database, id:',req.params.id);
+      res.sendStatus(404);
+    } else {
+      // CHECKS TO SEND DOWNLOAD TO FILE APP
+      debug('requested download found');
 
-    storeDownloadInFiles(download);
-    res.sendStatus(200);
+      storeDownloadInFiles(download);
+      res.sendStatus(200);
     }
   });
 });
