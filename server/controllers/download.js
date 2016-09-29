@@ -469,72 +469,75 @@ router.post('/downloads/new/', function(req, res, next) {
 *****************************************************/
 router.get('/downloads/list', function(req, res, next) {
 
-    Download.request('all', function(err, downloads) {
-        if(err) {
-            // ERROR
-            debug(err);
-			res.sendStatus(200);
-        } else {
-			// OK listing downloads
-			for (var i=0; i < downloads.length; i++) {
-				//debug('*** checking download : ',downloads[i]);
+  Download.request('all', function(err, downloads) {
+    if(err) {
+      // ERROR
+      debug(err);
+      res.sendStatus(200);
+    } else {
+      // OK listing downloads from database
+      for (var i=0; i < downloads.length; i++) {
 
-				// checking file last modification
-				var lastUpdate = (new Date()-(downloads[i].updated ? downloads[i].updated : downloads[i].created) );
+        // checking file last modification
+        var lastUpdate = (new Date()-(downloads[i].updated ? downloads[i].updated : downloads[i].created) );
 
-				if (downloads[i].filesize !== downloads[i].fileprogress || (downloads[i].fileprogress === 0 && downloads[i].filesize === 0 ) ) {
-					debug("checking last update:",lastUpdate);
+        if (downloads[i].filesize !== downloads[i].fileprogress || (downloads[i].fileprogress === 0 && downloads[i].filesize === 0 ) ) {
+          debug("downloads:list:downloads:list:checking last update:",lastUpdate);
 
-					// if last update is > 90s, it could be on error
-					if (lastUpdate > 90000) {
-						debug("change status to error:", downloads[i].pathname);
-						downloads[i].status = 'error';
-						downloads[i].statusMessage = "last update is old, download might have been truncated...";
-					}
-				}
-
-				if (downloads[i].status !== 'pending') {
-					// check file exists
-					if (fileExistsSync(downloads[i].pathname)) {
-						// file is present, checking size
-						var stats = fs.statSync(downloads[i].pathname);
-						downloads[i].fileprogress = stats['size'];
-						if (downloads[i].filesize === 0 && stats['size'] > 0) {
-							downloads[i].filesize = stats['size'];
-							debug("change filesize to:", downloads[i].filesize);
-						}
-
-						if (downloads[i].filesize < downloads[i].fileprogress) {
-							downloads[i].filesize = downloads[i].fileprogress;
-						}
-
-						if (downloads[i].status !== 'available') {
-							downloads[i].status = 'error';
-							if (downloads[i].filesize > 0 && downloads[i].fileprogress === downloads[i].filesize) {
-								downloads[i].status = 'available';
-								debug("change status to available:", downloads[i].pathname);
-							}
-						}
-					} else {
-						debug('file does not exists ('+i+'):' , downloads[i].pathname);
-						// file does not exist, update attributes
-						downloads[i].status = 'filenotfound';
-						//downloads[i].fileprogress = 0;
-					}
-				}
-
-				// saving attributes
-				downloads[i].save(function (err) {
-					if (err) {
-						debug ('downloads['+i+'].save:', err);
-					}
-				});
-			}
-
-			//debug(downloads);
-            res.status(200).json(downloads);
+          // if last update is > 90s, it could be on error
+          if (lastUpdate > 90000) {
+            debug("downloads:list:change status to error:", downloads[i].pathname);
+            downloads[i].status = 'error';
+            downloads[i].statusMessage = "last update is old, download might have been truncated...";
+          }
         }
-    });
+
+        if (downloads[i].status !== 'pending') {
+          // check file exists
+          if (fileExistsSync(downloads[i].pathname)) {
+            // file is present, checking size
+            var stats = fs.statSync(downloads[i].pathname);
+            downloads[i].fileprogress = stats['size'];
+            if (downloads[i].filesize === 0 && stats['size'] > 0) {
+              downloads[i].filesize = stats['size'];
+              debug("downloads:list:change filesize to:", downloads[i].filesize);
+            }
+
+            if (downloads[i].filesize < downloads[i].fileprogress) {
+              downloads[i].filesize = downloads[i].fileprogress;
+            }
+
+            if (downloads[i].status !== 'available') {
+              downloads[i].status = 'error';
+              if (downloads[i].filesize > 0 && downloads[i].fileprogress === downloads[i].filesize) {
+                downloads[i].status = 'available';
+                debug("downloads:list:change status to available:", downloads[i].pathname);
+              }
+            }
+          } else {
+            debug('downloads:list:file does not exists ('+i+'):' , downloads[i].pathname);
+            // file does not exist, update attributes
+            downloads[i].status = 'filenotfound';
+            downloads[i].fileprogress = 0;
+            downloads[i].filesize = 0;
+          }
+        }
+
+        // saving attributes
+        downloads[i].save(function (err) {
+          if (err) {
+            debug ('downloads:list:downloads['+i+'].save:', err);
+          }
+        });
+
+        // remove unwanted values for client
+        delete (downloads[i].pathname);
+      }
+
+      //debug(downloads);
+      res.status(200).json(downloads);
+    }
+  });
 });
 
 /*****************************************************
@@ -595,15 +598,15 @@ router.put('/downloads/tofile/:id', function(req, res, next) {
   Download.find(req.params.id, function(err, download) {
     if(err) {
       // ERROR
-      debug('requested download not found in database, id:',err);
+      debug('downloads:tofile:requested download not found in database, id:',err);
       res.sendStatus(500);
     } else if(!download) {
       // DOC NOT FOUND
-      debug('requested download not found in database, id:',req.params.id);
+      debug('downloads:tofile:requested download not found in database, id:',req.params.id);
       res.sendStatus(404);
     } else {
       // CHECKS TO SEND DOWNLOAD TO FILE APP
-      debug('requested download found');
+      debug('downloads:tofile:requested download found');
 
       storeDownloadInFiles(download);
       res.sendStatus(200);
@@ -621,7 +624,7 @@ router.get('/downloads/folder', function(req, res, next) {
 	Folder.byFullPath ( {key: filesFolderName}, function(err, folders) {
 		if(err) {
 			// ERROR
-			debug(err);
+			debug('downloads:folder:err', err);
 		} else {
 			if (folders.length > 0) {
 				folderInFilesId = folders[0]._id; // for futur use
@@ -643,11 +646,11 @@ router.get('/downloads/:id', function(req, res, next) {
             next(err);
         } else {
 			// OK
-			debug("/downloads/:id - trying to send file : ", download.pathname);
+			debug("get:downloads:id - trying to send file : ", download.pathname);
 			// check file exists
 			if (fileExistsSync(download.pathname)) {
 
-				debug('GOOD : file exists !!');
+				debug('get:downloads:OK: file exists !!');
 
 				var options = {
 					dotfiles: 'deny',
@@ -660,11 +663,11 @@ router.get('/downloads/:id', function(req, res, next) {
 				};
 
 				res.sendFile(download.pathname, options, function (err) {
-					debug('ERROR (sendFile) : ',err);
+					debug('get:downloads:ERROR (sendFile) : ',err);
 					res.sendStatus(404);
 				});
 			} else {
-				debug('ERROR : file does not exists !!');
+				debug('get:downloads:ERROR : file does not exists !!');
 				// file does not exist, update attributes
 				res.sendStatus(404);
 			}
