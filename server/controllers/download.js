@@ -299,7 +299,7 @@ var proceedWithDownload = function (download) {
               debug(err);
             } else {
               var mailOptions = {
-                from: 'myCozy <' + user.email || 'cozy@localhost>',
+                from: 'myCozy <' + (user.email || 'cozy@localhost') + '>',
                 subject: notifyTitle,
                 content: notifyMailMessage,
                 html: '<html><body>Hello ' + user.name + '<br /><br />' + notifyMailMessage + '</body></html>',
