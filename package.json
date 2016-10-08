@@ -17,7 +17,8 @@
     "cozydb": "0.1.7",
     "debug": "2.2.0",
     "express": "4.13.3",
-    "httpreq": "0.4.16"
+    "httpreq": "0.4.16",
+    "node-polyglot": "2.0.0"
   },
   "devDependencies": {
     "nodemon": "1.8.1"
