@@ -81,7 +81,7 @@ function storeToFileDownloadHelper (id) {
         updateMessage(t('store-request-success'));
         autoReloadMultiplier = 1;
       }
-      setTimeout(function(){updateListDownloads();}, 1000);
+      setTimeout(function(){updateListDownloads();}, 2000);
       return true;
     }
   });
@@ -208,7 +208,6 @@ function updateListDownloads() {
           ]
         );
       }
-      //console.log("globalPourcentage:", globalPourcentage);
 
       oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
       crudTable.fnDraw();
@@ -224,6 +223,10 @@ function updateListDownloads() {
     autoReloadMultiplier = 60;
     updateMessage(t('server-error'));
   });
+
+      //console.log("globalPourcentage:", globalPourcentage);
+      //console.log("autoReloadMultiplier:", autoReloadMultiplier);
+
   return true;
 };
 
@@ -263,6 +266,9 @@ window.onload = function() {
   // remove default submit event
   $("form").on('submit', function (e) {
     e.preventDefault();
+  });
+  $('#myModal').on('shown.bs.modal', function () {
+      $('#create-url').focus();
   });
 
   // start the show

@@ -30,7 +30,9 @@ if ( typeof persistentDirectory === 'undefined') {
 CozyInstance.first(function (err, instance) {
 	//debug("domain:",instance);
 	//cozyDomain = instance.domain;
-	cozyLocale = instance.locale;
+  if (typeof(instance) != 'undefined' && instance.locale != null) {
+    cozyLocale = instance.locale;
+  }
   debug ('cozyLocale:', cozyLocale);
 });
 
@@ -43,7 +45,7 @@ var defaultFileTag = 'Downloads';
 // Check il a file exists. Works in both Node 0.10 and greater
 var fileExistsSync = function (path, mode) {
   if (typeof fs.accessSync === 'function') {
-  if (typeof(mode)==='undefined') mode = fs.F_OK;
+    if (typeof(mode)==='undefined') mode = fs.F_OK;
     try {
       fs.accessSync(path, mode);
       return true;
@@ -641,14 +643,14 @@ router.get('/downloads/folder', function(req, res, next) {
 *****************************************************/
 router.get('/downloads/:id', function(req, res, next) {
 	Download.find(req.params.id, function(err, download) {
-        if(err) {
-            // ERROR
-            next(err);
-        } else {
+    if(err) {
+        // ERROR
+        next(err);
+    } else if (typeof (download) != 'undefined') {
 			// OK
 			debug("get:downloads:id - trying to send file : ", download.pathname);
 			// check file exists
-			if (fileExistsSync(download.pathname)) {
+			if ((download.pathname != null) && fileExistsSync(download.pathname)) {
 
 				debug('get:downloads:OK: file exists !!');
 
@@ -671,8 +673,11 @@ router.get('/downloads/:id', function(req, res, next) {
 				// file does not exist, update attributes
 				res.sendStatus(404);
 			}
-        }
-    });
+    } else {
+			debug("get:downloads:id:error:the requested ID was not found");
+			res.sendStatus(404);
+    }
+  });
 });
 
 /*****************************************************
