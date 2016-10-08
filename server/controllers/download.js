@@ -713,7 +713,8 @@ router.put('/downloads/:id', function(req, res, next) {
 *	Fetch an existing download by its ID
 *****************************************************/
 router.get('/locale', function(req, res, next) {
-  var locale = require ("../../client/app/locales/" + cozyLocale);
+  var locale = require ('../../client/app/locales/' + cozyLocale);
+  debug ('locale:', locale);
   res.status(200).send({
     "locale": cozyLocale,
     "phrases": locale,

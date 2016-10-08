@@ -2,6 +2,7 @@
 const autoReloadTimer = 1000;
 var autoReloadMultiplier = 10;
 var autoReloadValue = 0;
+var lastGlobalPourcentage = -1;
 
 function stringShortener (str, maxSize) {
   if (typeof maxSize === 'undefined') {
@@ -212,11 +213,12 @@ function updateListDownloads() {
       oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
       crudTable.fnDraw();
 
-			if (data.length === 0 || globalPourcentage === 100) {
+			if (lastGlobalPourcentage === globalPourcentage && (data.length === 0 || globalPourcentage === 100)) {
         autoReloadMultiplier = 60;
       } else {
         autoReloadMultiplier = 3+(globalPourcentage/12);
       }
+      lastGlobalPourcentage = globalPourcentage;
     }
   })
   .fail(function() {
