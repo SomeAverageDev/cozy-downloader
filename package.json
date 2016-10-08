@@ -18,7 +18,8 @@
     "debug": "2.2.0",
     "express": "4.13.3",
     "httpreq": "0.4.16",
-    "node-polyglot": "2.0.0"
+    "node-polyglot": "2.0.0",
+    "pug": "2.0.0"
   },
   "devDependencies": {
     "nodemon": "1.8.1"
