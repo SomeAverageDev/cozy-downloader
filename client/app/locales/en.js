@@ -4,7 +4,7 @@ module.exports = {
   "button-delete": "Delete",
   "button-download": "Download",
   "button-goto-files": "open 'FILES'",
-  "button-new-download": "Download",
+  "button-new-download": "New Download",
   "button-move": "Move to Files",
   "button-retrieve": "Retrieve",
   "button-retry": "Retry",
