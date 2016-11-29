@@ -1,3 +1,8 @@
+# Announcement 
+Hello !
+cozy-downloader is a client/server side app and as COZY is under [complete re-development](https://forum.cozy.io/t/en-about-the-roadmap-to-cozy-version-3/3807),
+cozy-downloader will not be updated until the new COZY software architecture is released.
+
 # Description
 
 Downloader is a Cozy Cloud App that allows you to download a file from the internet to your Cozy.
